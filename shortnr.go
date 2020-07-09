@@ -11,6 +11,36 @@ import (
 	"github.com/rs/xid"
 )
 
+type ShortenerStorage interface {
+	Get(id string) (string, bool)
+	Set(id string, url string)
+	Contains(url string) bool
+}
+
+type MapShortenerStorage struct {
+	iMap map[string]string
+}
+
+func (m MapShortenerStorage) Get(id string) (string, bool) {
+	redirectURL, ok := m.iMap[id]
+	return redirectURL, ok
+}
+
+func (m MapShortenerStorage) Set(id string, url string) {
+	m.iMap[id] = url
+}
+
+func (m MapShortenerStorage) Contains(url string) bool {
+	contains := false
+	for _, v := range m.iMap {
+		if v == url {
+			contains = true
+			break
+		}
+	}
+	return contains
+}
+
 // Send hello world
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message": "Hello, world!"}`))
@@ -29,7 +59,7 @@ type PostShortenerBody struct {
 }
 
 // Create new Id to Url mapping
-func ShortenerHandler(URLS map[string]string) http.HandlerFunc {
+func ShortenerHandler(URLS ShortenerStorage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body PostShortenerBody
 
@@ -50,19 +80,19 @@ func ShortenerHandler(URLS map[string]string) http.HandlerFunc {
 		id := xid.New().String()
 
 		// Store in our urls map
-		URLS[id] = body.URL
+		URLS.Set(id, body.URL)
 
 		w.Write([]byte(fmt.Sprintf(`{"message": "URL created", "id": %q, "originalURL": %q}`, id, body.URL)))
 	})
 }
 
 // Redirects request to original url
-func RedirectHandler(URLS map[string]string) http.HandlerFunc {
+func RedirectHandler(URLS ShortenerStorage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 
 		// Check for the id in our urls map and redirect if present
-		if redirectURL, ok := URLS[id]; ok {
+		if redirectURL, ok := URLS.Get(id); ok {
 			http.Redirect(w, r, redirectURL, 308)
 		} else {
 			w.WriteHeader(http.StatusNotFound)
@@ -74,7 +104,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Store all redirections in here
-	URLS := make(map[string]string)
+	URLS := MapShortenerStorage{iMap: make(map[string]string)}
 	r.HandleFunc("/{id}", RedirectHandler(URLS)).Methods(http.MethodGet)
 
 	api := r.PathPrefix("/api/v1").Subrouter()

@@ -68,7 +68,7 @@ func TestContentTypeJsonGetsSet(t *testing.T) {
 }
 
 func TestRequestGetsRedirected(t *testing.T) {
-	URLS := map[string]string{"12345": "https://www.google.com/"}
+	URLS := MapShortenerStorage{iMap: map[string]string{"12345": "https://www.google.com/"}}
 
 	// Set up router
 	r := mux.NewRouter()
@@ -93,7 +93,7 @@ func TestRequestGetsRedirected(t *testing.T) {
 
 func TestShortenedUrlGetsInserted(t *testing.T) {
 	// URL storage handlers will use
-	URLS := make(map[string]string)
+	URLS := MapShortenerStorage{iMap: make(map[string]string)}
 
 	// Set up router
 	r := mux.NewRouter()
@@ -111,15 +111,8 @@ func TestShortenedUrlGetsInserted(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Length should be 1
-	if len(URLS) != 1 {
-		t.Errorf("URLS is not length 1, got: %v", URLS)
-	}
-
 	// Value should be https://google.com
-	for _, v := range URLS {
-		if v != "https://google.com" {
-			t.Errorf("Wrong URL got inserted, got: %q", v)
-		}
+	if !URLS.Contains("https://google.com") {
+		t.Errorf("URL did not get inserted")
 	}
 }
