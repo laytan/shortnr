@@ -8,38 +8,9 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	"github.com/laytan/shortnr/shortenerstorage"
 	"github.com/rs/xid"
 )
-
-type ShortenerStorage interface {
-	Get(id string) (string, bool)
-	Set(id string, url string)
-	Contains(url string) bool
-}
-
-type MapShortenerStorage struct {
-	iMap map[string]string
-}
-
-func (m MapShortenerStorage) Get(id string) (string, bool) {
-	redirectURL, ok := m.iMap[id]
-	return redirectURL, ok
-}
-
-func (m MapShortenerStorage) Set(id string, url string) {
-	m.iMap[id] = url
-}
-
-func (m MapShortenerStorage) Contains(url string) bool {
-	contains := false
-	for _, v := range m.iMap {
-		if v == url {
-			contains = true
-			break
-		}
-	}
-	return contains
-}
 
 // Send hello world
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +30,7 @@ type PostShortenerBody struct {
 }
 
 // Create new Id to Url mapping
-func ShortenerHandler(URLS ShortenerStorage) http.HandlerFunc {
+func ShortenerHandler(URLS shortenerstorage.Storage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body PostShortenerBody
 
@@ -87,7 +58,7 @@ func ShortenerHandler(URLS ShortenerStorage) http.HandlerFunc {
 }
 
 // Redirects request to original url
-func RedirectHandler(URLS ShortenerStorage) http.HandlerFunc {
+func RedirectHandler(URLS shortenerstorage.Storage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 
@@ -104,7 +75,7 @@ func main() {
 	r := mux.NewRouter()
 
 	// Store all redirections in here
-	URLS := MapShortenerStorage{iMap: make(map[string]string)}
+	URLS := shortenerstorage.MapStorage{InternalMap: make(map[string]string)}
 	r.HandleFunc("/{id}", RedirectHandler(URLS)).Methods(http.MethodGet)
 
 	api := r.PathPrefix("/api/v1").Subrouter()

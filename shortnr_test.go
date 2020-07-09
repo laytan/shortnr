@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/laytan/shortnr/shortenerstorage"
 )
 
 func TestOnePlusOne(t *testing.T) {
@@ -68,7 +69,7 @@ func TestContentTypeJsonGetsSet(t *testing.T) {
 }
 
 func TestRequestGetsRedirected(t *testing.T) {
-	URLS := MapShortenerStorage{iMap: map[string]string{"12345": "https://www.google.com/"}}
+	URLS := shortenerstorage.MapStorage{InternalMap: map[string]string{"12345": "https://www.google.com/"}}
 
 	// Set up router
 	r := mux.NewRouter()
@@ -93,7 +94,7 @@ func TestRequestGetsRedirected(t *testing.T) {
 
 func TestShortenedUrlGetsInserted(t *testing.T) {
 	// URL storage handlers will use
-	URLS := MapShortenerStorage{iMap: make(map[string]string)}
+	URLS := shortenerstorage.MapStorage{InternalMap: make(map[string]string)}
 
 	// Set up router
 	r := mux.NewRouter()
