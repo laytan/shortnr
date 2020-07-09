@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"github.com/laytan/shortnr/shortenerstorage"
 	"github.com/rs/xid"
 )
@@ -71,11 +72,18 @@ func RedirectHandler(URLS shortenerstorage.Storage) http.HandlerFunc {
 	})
 }
 
+func init() {
+	// Load .env
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 	r := mux.NewRouter()
 
 	// Store all redirections in here
-	URLS := shortenerstorage.MapStorage{InternalMap: make(map[string]string)}
+	URLS := shortenerstorage.NewDatabaseStorage()
 	r.HandleFunc("/{id}", RedirectHandler(URLS)).Methods(http.MethodGet)
 
 	api := r.PathPrefix("/api/v1").Subrouter()
