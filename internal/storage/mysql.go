@@ -1,4 +1,4 @@
-package shortenerstorage
+package storage
 
 import (
 	"database/sql"
@@ -9,8 +9,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// NewDatabaseStorage returns a DatabaseStorage struct with a database connection from the environment variables
-func NewDatabaseStorage() DatabaseStorage {
+// NewMysqlStorage returns a MysqlStorage struct with a database connection from the environment variables
+func NewMysqlStorage() MysqlStorage {
 	// Get connection vars out of env
 	username, exists := os.LookupEnv("DB_USERNAME")
 	if !exists {
@@ -32,7 +32,7 @@ func NewDatabaseStorage() DatabaseStorage {
 	}
 
 	// Return struct with connection
-	return DatabaseStorage{Conn: db}
+	return MysqlStorage{Conn: db}
 }
 
 type link struct {
@@ -40,13 +40,13 @@ type link struct {
 	URL string
 }
 
-// DatabaseStorage is a storage implementation using a mysql database connection
-type DatabaseStorage struct {
+// MysqlStorage is a storage implementation using a mysql database connection
+type MysqlStorage struct {
 	Conn *sql.DB
 }
 
 // Get returns the url associated with the id given and if it exists
-func (d DatabaseStorage) Get(id string) (string, bool) {
+func (d MysqlStorage) Get(id string) (string, bool) {
 	var link link
 	err := d.Conn.QueryRow("SELECT id, url FROM links WHERE id = ?", id).Scan(&link.ID, &link.URL)
 	if err != nil {
@@ -58,7 +58,7 @@ func (d DatabaseStorage) Get(id string) (string, bool) {
 }
 
 // Set inserts a new row to the database defining a link
-func (d DatabaseStorage) Set(id string, url string) {
+func (d MysqlStorage) Set(id string, url string) {
 	_, err := d.Conn.Query("INSERT INTO links VALUES (?, ?)", id, url)
 	if err != nil {
 		fmt.Printf("Error in Set: %+v", err)
@@ -66,7 +66,7 @@ func (d DatabaseStorage) Set(id string, url string) {
 }
 
 // Contains checks if the database has the specified url in it
-func (d DatabaseStorage) Contains(url string) bool {
+func (d MysqlStorage) Contains(url string) bool {
 	results, err := d.Conn.Query("SELECT COUNT(id) FROM links WHERE url = ?", url)
 	if err != nil {
 		fmt.Printf("Error in Contains: %+v", err)

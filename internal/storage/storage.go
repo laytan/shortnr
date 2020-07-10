@@ -1,4 +1,4 @@
-package shortenerstorage
+package storage
 
 // Storage defines the methods required to interact with a link storing method
 type Storage interface {
