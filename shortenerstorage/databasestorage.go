@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func NewDatabaseStorage() DatabaseStorage {
@@ -16,21 +18,21 @@ func NewDatabaseStorage() DatabaseStorage {
 	if !exists {
 		panic("No DB_PASSWORD env variable set")
 	}
-	host, exists := os.LookupEnv("DB_HOST")
-	if !exists {
-		panic("No DB_USERNAME env variable set")
-	}
-	port, exists := os.LookupEnv("DB_PORT")
-	if !exists {
-		panic("No DB_PORT env variable set")
-	}
+	// host, exists := os.LookupEnv("DB_HOST")
+	// if !exists {
+	// 	panic("No DB_USERNAME env variable set")
+	// }
+	// port, exists := os.LookupEnv("DB_PORT")
+	// if !exists {
+	// 	panic("No DB_PORT env variable set")
+	// }
 	database, exists := os.LookupEnv("DB_DATABASE")
 	if !exists {
 		panic("No DB_DATABASE env variable set")
 	}
 
 	// Connect to mysql
-	db, err := sql.Open("mysql", fmt.Sprintf("%q:%q@%q:%q/%q", username, password, host, port, database))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", username, password, database))
 	if err != nil {
 		panic(err.Error())
 	}
@@ -40,8 +42,8 @@ func NewDatabaseStorage() DatabaseStorage {
 }
 
 type Link struct {
-	ID  string `json:"id"`
-	URL string `json:"url"`
+	ID  string
+	URL string
 }
 
 type DatabaseStorage struct {
@@ -50,7 +52,7 @@ type DatabaseStorage struct {
 
 func (d DatabaseStorage) Get(id string) (string, bool) {
 	var link Link
-	err := d.Conn.QueryRow("SELECT id, url FROM links WHERE id = ?", id).Scan(&link)
+	err := d.Conn.QueryRow("SELECT id, url FROM links WHERE id = ?", id).Scan(&link.ID, &link.URL)
 	if err != nil {
 		fmt.Printf("Error in Get: %+v", err)
 		return "", false
