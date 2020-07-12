@@ -1,4 +1,4 @@
-package user
+package routes
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"github.com/laytan/shortnr/internal/user/storage"
 )
 
-// SetRoutes adds the routes needed for users service
-func SetRoutes(r *mux.Router, storage storage.Storage) {
+// Set adds the routes needed for users service
+func Set(r *mux.Router, storage storage.Storage) {
 	r.HandleFunc("/signup", handlers.Signup(storage)).Methods(http.MethodPost)
 }

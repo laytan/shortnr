@@ -11,7 +11,7 @@ import (
 
 	"github.com/laytan/shortnr/internal/link"
 	"github.com/laytan/shortnr/internal/redirect"
-	"github.com/laytan/shortnr/internal/user"
+	"github.com/laytan/shortnr/internal/user/routes"
 	userStorage "github.com/laytan/shortnr/internal/user/storage"
 
 	"github.com/gorilla/mux"
@@ -22,7 +22,7 @@ import (
 // init runs before main
 func init() {
 	// Load .env
-	if err := godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -61,7 +61,7 @@ func main() {
 
 	// API routes
 	link.SetRoutes(api, linksStore)
-	user.SetRoutes(api, usersStore)
+	routes.Set(api, usersStore)
 
 	// Start up server
 	log.Fatal(http.ListenAndServe(":8080", r))
