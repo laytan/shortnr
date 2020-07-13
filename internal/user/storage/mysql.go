@@ -12,7 +12,6 @@ type Mysql struct {
 
 // Set a new user in the database
 func (m Mysql) Set(user User) bool {
-	fmt.Println(user)
 	_, err := m.Conn.Exec(`INSERT INTO users (email, hash, createdAt) VALUES(?, ?, ?)`, user.Email, user.Hash, user.CreatedAt)
 	if err != nil {
 		fmt.Printf("Error in set user: %+v", err)

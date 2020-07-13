@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"testing"
@@ -41,8 +40,6 @@ func TestSignup(t *testing.T) {
 	if body.Message != "Signed up!" {
 		t.Fatalf("Signup response message not as expected. Got: %s, Want: %s", body.Message, "Signed up!")
 	}
-
-	fmt.Println(store.Users)
 
 	_, exists := store.GetByEmail("test@test.com")
 	if !exists {

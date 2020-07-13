@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -51,28 +52,37 @@ func Login(store storage.Storage) http.HandlerFunc {
 			w.Write([]byte(`{"message": "Invalid credentials"}`))
 		}
 
-		// Sign JWT token
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"id":        user.ID,
-			"email":     user.Email,
-			"createdAt": user.CreatedAt,
-			"updatedAt": user.UpdatedAt,
-		})
-
-		secret, exists := os.LookupEnv("JWT_SECRET")
-		if !exists {
-			w.WriteHeader(500)
-			panic("JWT_SECRET not set")
-		}
-
-		tokenString, err := token.SignedString([]byte(secret))
+		token, err := SignUserToken(user)
 		if err != nil {
-			fmt.Printf("Error signing JWT: %v \n", err)
+			fmt.Println(err)
 			w.WriteHeader(500)
 			return
 		}
 
 		// Send token back
-		w.Write([]byte(fmt.Sprintf(`{"message": "Logged in!", "token": %q}`, tokenString)))
+		w.Write([]byte(fmt.Sprintf(`{"message": "Logged in!", "token": %q}`, token)))
 	})
+}
+
+// SignUserToken creates a jwt token for the given user
+func SignUserToken(user storage.User) (string, error) {
+	// Sign JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":        user.ID,
+		"email":     user.Email,
+		"createdAt": user.CreatedAt,
+		"updatedAt": user.UpdatedAt,
+	})
+
+	secret, exists := os.LookupEnv("JWT_SECRET")
+	if !exists {
+		return "", errors.New("JWT_SECRET environment variable not set")
+	}
+
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", fmt.Errorf("error signing JWT: %v", err)
+	}
+
+	return tokenString, nil
 }

@@ -1,7 +1,5 @@
 package storage
 
-import "fmt"
-
 // Memory stores users in memory
 type Memory struct {
 	Users []User
@@ -9,7 +7,6 @@ type Memory struct {
 
 // Set adds the user to the store
 func (m *Memory) Set(user User) bool {
-	fmt.Println("Setting")
 	m.Users = append(m.Users, user)
 	return true
 }
