@@ -3,50 +3,23 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"os"
 
 	// Need to import mysql driver
 	_ "github.com/go-sql-driver/mysql"
 )
-
-// NewMysqlStorage returns a MysqlStorage struct with a database connection from the environment variables
-func NewMysqlStorage() MysqlStorage {
-	// Get connection vars out of env
-	username, exists := os.LookupEnv("DB_USERNAME")
-	if !exists {
-		panic("No DB_USERNAME env variable set")
-	}
-	password, exists := os.LookupEnv("DB_PASSWORD")
-	if !exists {
-		panic("No DB_PASSWORD env variable set")
-	}
-	database, exists := os.LookupEnv("DB_DATABASE")
-	if !exists {
-		panic("No DB_DATABASE env variable set")
-	}
-
-	// Connect to mysql
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", username, password, database))
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Return struct with connection
-	return MysqlStorage{Conn: db}
-}
 
 type link struct {
 	ID  string
 	URL string
 }
 
-// MysqlStorage is a storage implementation using a mysql database connection
-type MysqlStorage struct {
+// Mysql is a storage implementation using a mysql database connection
+type Mysql struct {
 	Conn *sql.DB
 }
 
 // Get returns the url associated with the id given and if it exists
-func (d MysqlStorage) Get(id string) (string, bool) {
+func (d Mysql) Get(id string) (string, bool) {
 	var link link
 	err := d.Conn.QueryRow("SELECT id, url FROM links WHERE id = ?", id).Scan(&link.ID, &link.URL)
 	if err != nil {
@@ -58,7 +31,7 @@ func (d MysqlStorage) Get(id string) (string, bool) {
 }
 
 // Set inserts a new row to the database defining a link
-func (d MysqlStorage) Set(id string, url string) {
+func (d Mysql) Set(id string, url string) {
 	_, err := d.Conn.Query("INSERT INTO links VALUES (?, ?)", id, url)
 	if err != nil {
 		fmt.Printf("Error in Set: %+v", err)
@@ -66,7 +39,7 @@ func (d MysqlStorage) Set(id string, url string) {
 }
 
 // Contains checks if the database has the specified url in it
-func (d MysqlStorage) Contains(url string) bool {
+func (d Mysql) Contains(url string) bool {
 	results, err := d.Conn.Query("SELECT COUNT(id) FROM links WHERE url = ?", url)
 	if err != nil {
 		fmt.Printf("Error in Contains: %+v", err)
