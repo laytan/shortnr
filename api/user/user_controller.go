@@ -45,8 +45,8 @@ func signup(store Storage) http.HandlerFunc {
 }
 
 type loginResponse struct {
-	Token string
-	User  User
+	Token string `json:"token"`
+	User  User   `json:"user"`
 }
 
 func login(store Storage) http.HandlerFunc {
@@ -59,6 +59,7 @@ func login(store Storage) http.HandlerFunc {
 				Code: http.StatusBadRequest,
 				Err:  errors.New("unable to parse JSON body"),
 			}.Send(w)
+			return
 		}
 
 		// Dispatch to user service

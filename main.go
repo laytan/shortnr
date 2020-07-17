@@ -2,27 +2,24 @@ package main
 
 import (
 	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/laytan/shortnr/api/link"
+	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/jsonmiddleware"
-
-	"github.com/laytan/shortnr/internal/link"
-	"github.com/laytan/shortnr/internal/redirect"
-	"github.com/laytan/shortnr/internal/user/routes"
-	userStorage "github.com/laytan/shortnr/internal/user/storage"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	linkStorage "github.com/laytan/shortnr/internal/storage"
 )
 
 // init runs before main
 func init() {
 	// Load .env
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -50,18 +47,14 @@ func main() {
 
 	r := mux.NewRouter()
 
-	linksStore := linkStorage.MysqlStorage{Conn: db}
-	usersStore := userStorage.Mysql{Conn: db}
-
-	// General routes
-	redirect.SetRoutes(r, linksStore)
+	linkStore := link.MysqlStorage{Conn: db}
+	userStore := user.MysqlStorage{Conn: db}
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.Use(jsonmiddleware.Middleware)
 
-	// API routes
-	link.SetRoutes(api, linksStore)
-	routes.Set(api, usersStore)
+	link.SetRoutes(api, linkStore)
+	user.SetRoutes(api, userStore)
 
 	// Start up server
 	log.Fatal(http.ListenAndServe(":8080", r))

@@ -29,14 +29,20 @@ func create(store Storage) http.HandlerFunc {
 			return
 		}
 
-		cErr := Create(body, store)
+		id, cErr := Create(body, store)
 		if cErr != nil {
 			responder.CastAndSend(cErr, w)
 			return
 		}
 
+		type createResponse struct {
+			ID          string `json:"id"`
+			OriginalURL string `json:"originalUrl"`
+		}
+
 		responder.Res{
 			Message: "succesfully created link",
+			Data:    createResponse{ID: id, OriginalURL: body.URL},
 		}.Send(w)
 	})
 }

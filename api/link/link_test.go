@@ -12,7 +12,7 @@ func TestCreateInserts(t *testing.T) {
 	// URL storage handlers will use
 	storage := MemoryStorage{InternalMap: make(map[string]string)}
 
-	err := Create(Link{URL: "https://google.com"}, storage)
+	_, err := Create(Link{URL: "https://google.com"}, storage)
 	if err != nil {
 		t.Fatal(err)
 	}

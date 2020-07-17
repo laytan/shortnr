@@ -10,10 +10,10 @@ import (
 )
 
 // Create adds a new shortened link to the store
-func Create(link Link, store Storage) error {
+func Create(link Link, store Storage) (string, error) {
 	validationErr := validator.New().Struct(link)
 	if validationErr != nil {
-		return responder.Err{
+		return "", responder.Err{
 			Code: http.StatusBadRequest,
 			Err:  errors.New("validation failed"),
 		}
@@ -24,5 +24,5 @@ func Create(link Link, store Storage) error {
 
 	// Store in our storage
 	store.Set(id, link.URL)
-	return nil
+	return id, nil
 }

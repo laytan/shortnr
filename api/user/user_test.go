@@ -284,11 +284,13 @@ func TestLoginReturnsToken(t *testing.T) {
 		t.Fatal(decodeErr)
 	}
 
+	fmt.Println(body)
+
 	if body.Res.Msg != "logged in" {
 		t.Fatalf("Expected message: %q, got message: %q", "logged in", body.Res.Msg)
 	}
 
-	if len(body.Res.Data["Token"].(string)) < 2 {
-		t.Fatalf("Expected token string to be longer then 2 characters, got: %q", body.Res.Data["Token"])
+	if len(body.Res.Data["token"].(string)) < 2 {
+		t.Fatalf("Expected token string to be longer then 2 characters, got: %q", body.Res.Data["token"])
 	}
 }
