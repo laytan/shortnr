@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/laytan/shortnr/api/link/storage"
 	"github.com/laytan/shortnr/pkg/responder"
 )
 
 // SetRoutes adds the routes needed for shortn service
-func SetRoutes(r *mux.Router, store storage.Storage) {
+func SetRoutes(r *mux.Router, store Storage) {
+	r.HandleFunc("/{id}", Redirect(store)).Methods(http.MethodGet)
 	r.HandleFunc("/shortn", create(store)).Methods(http.MethodPost)
 }
 
 // Delegates to create service but handles parsing body and sending responses
-func create(store storage.Storage) http.HandlerFunc {
+func create(store Storage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body Link
 
@@ -38,5 +38,19 @@ func create(store storage.Storage) http.HandlerFunc {
 		responder.Res{
 			Message: "succesfully created link",
 		}.Send(w)
+	})
+}
+
+// redirect redirects request to original url or 404
+func Redirect(URLS Storage) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
+
+		// Check for the id in our urls map and redirect if present
+		if redirectURL, ok := URLS.Get(id); ok {
+			http.Redirect(w, r, redirectURL, 308)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
 	})
 }

@@ -19,16 +19,16 @@ func (r Err) Error() string {
 // MarshalJSON turns the struct into a error we can return outside safely
 func (r Err) MarshalJSON() ([]byte, error) {
 	m := make(map[string]interface{})
-	m["err"] = make(map[string]string)
+	m["err"] = make(map[string]interface{})
 	m["res"] = nil
 
-	m["err"].(map[string]string)["msg"] = r.Err.Error()
-	if r.Code >= 500 || r.Code < 600 {
-		m["err"].(map[string]string)["msg"] = "internal server error"
+	m["err"].(map[string]interface{})["msg"] = r.Err.Error()
+	if r.Code >= 500 && r.Code < 600 {
+		m["err"].(map[string]interface{})["msg"] = "internal server error"
 	}
 
-	if len(m["err"].(map[string]string)["msg"]) < 1 {
-		m["err"].(map[string]string)["msg"] = "something went wrong, please try again later"
+	if len(m["err"].(map[string]interface{})["msg"].(string)) < 1 {
+		m["err"].(map[string]interface{})["msg"] = "something went wrong, please try again later"
 	}
 
 	return json.Marshal(m)

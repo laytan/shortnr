@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator"
-	"github.com/laytan/shortnr/api/link/storage"
 	"github.com/laytan/shortnr/pkg/responder"
 	"github.com/rs/xid"
 )
 
 // Create adds a new shortened link to the store
-func Create(link Link, store storage.Storage) error {
+func Create(link Link, store Storage) error {
 	validationErr := validator.New().Struct(link)
 	if validationErr != nil {
 		return responder.Err{
