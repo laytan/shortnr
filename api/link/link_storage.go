@@ -1,38 +1,15 @@
-package storage
+package link
 
 import (
 	"database/sql"
 	"fmt"
-	"os"
-
-	// Need to import mysql driver
-	_ "github.com/go-sql-driver/mysql"
 )
 
-// NewMysqlStorage returns a MysqlStorage struct with a database connection from the environment variables
-func NewMysqlStorage() MysqlStorage {
-	// Get connection vars out of env
-	username, exists := os.LookupEnv("DB_USERNAME")
-	if !exists {
-		panic("No DB_USERNAME env variable set")
-	}
-	password, exists := os.LookupEnv("DB_PASSWORD")
-	if !exists {
-		panic("No DB_PASSWORD env variable set")
-	}
-	database, exists := os.LookupEnv("DB_DATABASE")
-	if !exists {
-		panic("No DB_DATABASE env variable set")
-	}
-
-	// Connect to mysql
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s", username, password, database))
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// Return struct with connection
-	return MysqlStorage{Conn: db}
+// Storage defines the methods required to interact with a link storing method
+type Storage interface {
+	Get(id string) (string, bool)
+	Set(id string, url string)
+	Contains(url string) bool
 }
 
 type link struct {
@@ -40,7 +17,7 @@ type link struct {
 	URL string
 }
 
-// MysqlStorage is a storage implementation using a mysql database connection
+// Mysql is a storage implementation using a mysql database connection
 type MysqlStorage struct {
 	Conn *sql.DB
 }
@@ -83,4 +60,31 @@ func (d MysqlStorage) Contains(url string) bool {
 	}
 
 	return count > 0
+}
+
+type MemoryStorage struct {
+	InternalMap map[string]string
+}
+
+// Get returns the url associated with the given id
+func (m MemoryStorage) Get(id string) (string, bool) {
+	redirectURL, ok := m.InternalMap[id]
+	return redirectURL, ok
+}
+
+// Set adds the given id to url to the map
+func (m MemoryStorage) Set(id string, url string) {
+	m.InternalMap[id] = url
+}
+
+// Contains checks if the map has the url in it
+func (m MemoryStorage) Contains(url string) bool {
+	contains := false
+	for _, v := range m.InternalMap {
+		if v == url {
+			contains = true
+			break
+		}
+	}
+	return contains
 }
