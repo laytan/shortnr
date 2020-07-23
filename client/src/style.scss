@@ -1,0 +1,23 @@
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+// teal-700
+$primary: #168967;
+// grey-800
+$secondary: #343a40;
+
+$input-btn-focus-width: 1px;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+.router-link-exact-active {
+	@extend .active;
+}
+
+a {
+	font-weight: 600;
+}
+
+.cursor-pointer {
+	cursor: pointer;
+}
