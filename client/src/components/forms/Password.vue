@@ -6,7 +6,9 @@
         <Icon icon="lock"/>
       </span>
       <input
+        @input="$emit('changed', $event.target.value)"
         :type="passwordShown ? 'text' : 'password'"
+        :autocomplete="autoComplete"
         placeholder="Password"
         class="form-control"
         id="password">
@@ -24,6 +26,12 @@
 import { ref } from 'vue';
 
 export default {
+  props: {
+    autoComplete: {
+      type: String,
+      default: 'current-password',
+    },
+  },
   setup() {
     const passwordShown = ref(false);
     return { passwordShown };

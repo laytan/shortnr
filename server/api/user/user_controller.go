@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -25,6 +26,7 @@ func signup(store Storage) http.HandlerFunc {
 		var credentials Credentials
 		err := json.NewDecoder(r.Body).Decode(&credentials)
 		if err != nil {
+			fmt.Println(err)
 			responder.Err{
 				Code: http.StatusBadRequest,
 				Err:  errors.New("unable to parse JSON body"),

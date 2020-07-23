@@ -14,6 +14,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 // init runs before main
@@ -56,6 +57,8 @@ func main() {
 	link.SetRoutes(api, linkStore)
 	user.SetRoutes(api, userStore)
 
+	handler := cors.Default().Handler(r)
+
 	// Start up server
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
