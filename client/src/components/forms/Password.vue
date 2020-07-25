@@ -2,7 +2,7 @@
   <div>
     <label for="password" class="form-label sr-only">Password</label>
     <div class="input-group mb-1">
-      <span class="input-group-text bg-primary text-white">
+      <span class="input-group-text bg-secondary text-light">
         <Icon icon="lock"/>
       </span>
       <input

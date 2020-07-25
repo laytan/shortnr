@@ -2,7 +2,7 @@
   <div>
     <label for="email" class="form-label sr-only">Email</label>
     <div class="input-group">
-      <span class="input-group-text bg-primary text-white">
+      <span class="input-group-text bg-secondary text-light">
         <Icon icon="envelope" />
       </span>
       <input
