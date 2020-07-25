@@ -31,6 +31,11 @@ func SetupUserServer() (*httptest.Server, *MemoryStorage) {
 	r.Use(jsonmiddleware.Middleware)
 	SetRoutes(r, &store)
 
+	authR := r.PathPrefix("").Subrouter()
+	authR.Use(JwtAuthorization)
+
+	SetAuthRoutes(authR, &store)
+
 	// Set up server
 	return httptest.NewServer(r), &store
 }

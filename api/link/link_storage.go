@@ -17,7 +17,7 @@ type link struct {
 	URL string
 }
 
-// Mysql is a storage implementation using a mysql database connection
+// MysqlStorage is a storage implementation using a mysql database connection
 type MysqlStorage struct {
 	Conn *sql.DB
 }
@@ -62,6 +62,7 @@ func (d MysqlStorage) Contains(url string) bool {
 	return count > 0
 }
 
+// MemoryStorage stores links in memory
 type MemoryStorage struct {
 	InternalMap map[string]string
 }

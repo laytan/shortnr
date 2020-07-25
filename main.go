@@ -2,11 +2,12 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/laytan/shortnr/api/link"
 	"github.com/laytan/shortnr/api/user"
@@ -46,15 +47,26 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	r.Use(jsonmiddleware.Middleware)
 
-	linkStore := link.MysqlStorage{Conn: db}
-	userStore := user.MysqlStorage{Conn: db}
+	usersRouter := r.PathPrefix("/api/v1/users").Subrouter()
+	linksRouter := r.PathPrefix("/api/v1/links").Subrouter()
 
-	api := r.PathPrefix("/api/v1").Subrouter()
-	api.Use(jsonmiddleware.Middleware)
+	linksStore := link.MysqlStorage{Conn: db}
+	usersStore := user.MysqlStorage{Conn: db}
 
-	link.SetRoutes(api, linkStore)
-	user.SetRoutes(api, userStore)
+	link.SetRoutes(linksRouter, linksStore)
+	user.SetRoutes(usersRouter, usersStore)
+
+	// apiRouter := r.PathPrefix("/api/v1").Subrouter()
+	// apiRouter.Use(jsonmiddleware.Middleware)
+
+	// link.SetRoutes(apiRouter, linkStore)
+	// user.SetRoutes(apiRouter, userStore)
+
+	// apiAuthRouter := r.PathPrefix("").Subrouter()
+	// apiAuthRouter.Use(user.JwtAuthorization)
+	// user.SetAuthRoutes(apiAuthRouter, userStore)
 
 	// Start up server
 	log.Fatal(http.ListenAndServe(":8080", r))
