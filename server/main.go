@@ -15,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 // init runs before main
@@ -68,6 +69,8 @@ func main() {
 	// apiAuthRouter.Use(user.JwtAuthorization)
 	// user.SetAuthRoutes(apiAuthRouter, userStore)
 
+	handler := cors.Default().Handler(r)
+
 	// Start up server
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }

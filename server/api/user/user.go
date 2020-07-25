@@ -46,6 +46,6 @@ func GetUser(r *http.Request) (User, error) {
 
 // Credentials are used on login and signup requests
 type Credentials struct {
-	Email    string `validate:"required,email"`
-	Password string `validate:"required,min=6"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
 }
