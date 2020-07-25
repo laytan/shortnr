@@ -11,6 +11,7 @@
         placeholder="Email"
         type="email"
         class="form-control"
+        required="true"
         id="email">
     </div>
   </div>

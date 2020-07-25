@@ -11,6 +11,7 @@
         :autocomplete="autoComplete"
         placeholder="Password"
         class="form-control"
+        required="true"
         id="password">
         <button
           type="button"

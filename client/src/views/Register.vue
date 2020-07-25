@@ -53,12 +53,6 @@ export default {
       success.value = '';
       error.value = '';
 
-      // Validate required fields
-      if (!email.value.length || !password.value.length) {
-        error.value = 'Please fill in all fields';
-        return;
-      }
-
       // Validate password length
       if (password.value.length < 6) {
         error.value = 'Password must be at least 6 characters';
