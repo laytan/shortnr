@@ -1,11 +1,10 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/laytan/shortnr/db"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -27,25 +26,7 @@ func init() {
 }
 
 func main() {
-	// Get connection vars out of env
-	username, exists := os.LookupEnv("DB_USERNAME")
-	if !exists {
-		panic("No DB_USERNAME env variable set")
-	}
-	password, exists := os.LookupEnv("DB_PASSWORD")
-	if !exists {
-		panic("No DB_PASSWORD env variable set")
-	}
-	database, exists := os.LookupEnv("DB_DATABASE")
-	if !exists {
-		panic("No DB_DATABASE env variable set")
-	}
-
-	// Connect to mysql
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@/%s?parseTime=true", username, password, database))
-	if err != nil {
-		panic(err.Error())
-	}
+	db := db.GetConnection()
 
 	r := mux.NewRouter()
 	r.Use(jsonmiddleware.Middleware)
@@ -58,16 +39,6 @@ func main() {
 
 	link.SetRoutes(linksRouter, linksStore)
 	user.SetRoutes(usersRouter, usersStore)
-
-	// apiRouter := r.PathPrefix("/api/v1").Subrouter()
-	// apiRouter.Use(jsonmiddleware.Middleware)
-
-	// link.SetRoutes(apiRouter, linkStore)
-	// user.SetRoutes(apiRouter, userStore)
-
-	// apiAuthRouter := r.PathPrefix("").Subrouter()
-	// apiAuthRouter.Use(user.JwtAuthorization)
-	// user.SetAuthRoutes(apiAuthRouter, userStore)
 
 	handler := cors.Default().Handler(r)
 

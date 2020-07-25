@@ -1,9 +1,9 @@
 package user
 
 import (
-	"fmt"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,15 +19,11 @@ func SetRoutes(r *mux.Router, store Storage) {
 
 	r.HandleFunc("/signup", signup(store)).Methods(http.MethodPost)
 	r.HandleFunc("/login", login(store)).Methods(http.MethodPost)
-}
 
-// SetAuthRoutes sets the routes that require auth
-func SetAuthRoutes(r *mux.Router, store Storage) {
-	// 1 request per second
-	authUserR := r.PathPrefix("").Subrouter()
-	authUserR.Use(ratelimit.Middleware(ratelimit.GeneralRateLimit))
+	authR := userR.PathPrefix("").Subrouter()
+	authR.Use(JwtAuthorization)
 
-	r.HandleFunc("/me", me()).Methods(http.MethodGet)
+	authR.HandleFunc("/me", me()).Methods(http.MethodGet)
 }
 
 func signup(store Storage) http.HandlerFunc {
