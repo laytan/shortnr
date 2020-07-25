@@ -10,7 +10,7 @@ export const req = (endpoint, opts = {}) => fetch(`${APIURL}${endpoint}`, opts)
   .catch((res) => {
     if (!res.json) {
       return {
-        msg: 'Network error',
+        msg: 'Could not connect to server, check your connection',
       };
     }
     return res.json().then((data) => data.err);
