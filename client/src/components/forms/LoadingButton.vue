@@ -1,13 +1,10 @@
 <template>
   <button class="btn btn-primary w-100 position-relative">
     {{ text }}
-    <span class="position-absolute">
-      <Icon
-        :spin="true"
-        v-if="loading"
-        icon="arrow-clockwise"
-        :size="size"
-        />
+    <span class="position-absolute" v-if="loading">
+      <div class="spinner-border spinner-border-sm" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
     </span>
   </button>
 </template>
@@ -23,17 +20,13 @@ export default {
       type: Boolean,
       default: false,
     },
-    size: {
-      type: Number,
-      required: false,
-    },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-span {
+span.position-absolute {
   right: .5rem;
-  bottom: .3rem;
+  bottom: .5rem;
 }
 </style>
