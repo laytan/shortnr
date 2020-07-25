@@ -1,22 +1,28 @@
 package user
 
 import (
-	"fmt"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/laytan/shortnr/pkg/ratelimit"
 	"github.com/laytan/shortnr/pkg/responder"
 )
 
 // SetRoutes adds the user related routes to the router
 func SetRoutes(r *mux.Router, store Storage) {
+	// Rate limit to 1 request per 10 seconds
+	userR := r.PathPrefix("").Subrouter()
+	userR.Use(ratelimit.Middleware(ratelimit.AuthorizationRateLimit))
+
 	r.HandleFunc("/signup", signup(store)).Methods(http.MethodPost)
 	r.HandleFunc("/login", login(store)).Methods(http.MethodPost)
 
-	authR := r.PathPrefix("").Subrouter()
+	authR := userR.PathPrefix("").Subrouter()
 	authR.Use(JwtAuthorization)
+
 	authR.HandleFunc("/me", me()).Methods(http.MethodGet)
 }
 

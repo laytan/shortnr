@@ -12,7 +12,7 @@ type Storage interface {
 	Set(user User) bool
 }
 
-// Memory stores users in memory
+// MemoryStorage stores users in memory
 type MemoryStorage struct {
 	Users []User
 }
@@ -43,7 +43,7 @@ func (m MemoryStorage) GetByEmail(email string) (User, bool) {
 	return User{}, false
 }
 
-// Mysql stores users in mysql database
+// MysqlStorage stores users in mysql database
 type MysqlStorage struct {
 	Conn *sql.DB
 }

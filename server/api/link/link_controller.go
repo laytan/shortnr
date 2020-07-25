@@ -5,14 +5,19 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/laytan/shortnr/pkg/ratelimit"
+
 	"github.com/gorilla/mux"
 	"github.com/laytan/shortnr/pkg/responder"
 )
 
 // SetRoutes adds the routes needed for shortn service
 func SetRoutes(r *mux.Router, store Storage) {
-	r.HandleFunc("/{id}", Redirect(store)).Methods(http.MethodGet)
-	r.HandleFunc("/shortn", create(store)).Methods(http.MethodPost)
+	linkR := r.PathPrefix("").Subrouter()
+	linkR.Use(ratelimit.Middleware(ratelimit.GeneralRateLimit))
+
+	linkR.HandleFunc("/{id}", Redirect(store)).Methods(http.MethodGet)
+	linkR.HandleFunc("/shortn", create(store)).Methods(http.MethodPost)
 }
 
 // Delegates to create service but handles parsing body and sending responses
@@ -47,7 +52,7 @@ func create(store Storage) http.HandlerFunc {
 	})
 }
 
-// redirect redirects request to original url or 404
+// Redirect redirects request to original url or 404
 func Redirect(URLS Storage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]

@@ -71,7 +71,7 @@ func SignUserToken(user User) (string, error) {
 	if err != nil {
 		return "", responder.Err{
 			Code: http.StatusInternalServerError,
-			Err:  errors.New(fmt.Sprintf("error signing JWT: %+v", err)),
+			Err:  fmt.Errorf("error signing JWT: %+v", err),
 		}
 	}
 
@@ -103,7 +103,7 @@ func Signup(creds Credentials, store Storage) error {
 	if hashErr != nil {
 		return responder.Err{
 			Code: http.StatusInternalServerError,
-			Err:  errors.New(fmt.Sprintf("error while hashing password: %+v", hashErr)),
+			Err:  fmt.Errorf("error while hashing password: %+v", hashErr),
 		}
 	}
 
