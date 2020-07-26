@@ -19,11 +19,13 @@ func SetRoutes(r *mux.Router, store Storage) {
 
 	r.HandleFunc("/signup", signup(store)).Methods(http.MethodPost)
 	r.HandleFunc("/login", login(store)).Methods(http.MethodPost)
+	r.HandleFunc("/refresh", refresh(store)).Methods(http.MethodPost)
+	r.HandleFunc("/logout", logout).Methods(http.MethodDelete)
 
 	authR := userR.PathPrefix("").Subrouter()
 	authR.Use(JwtAuthorization)
 
-	authR.HandleFunc("/me", me()).Methods(http.MethodGet)
+	authR.HandleFunc("/me", me).Methods(http.MethodGet)
 }
 
 func signup(store Storage) http.HandlerFunc {
@@ -52,9 +54,19 @@ func signup(store Storage) http.HandlerFunc {
 	})
 }
 
-type loginResponse struct {
+// Helper to generate refresh cookie with required settings
+func refreshCookie(refreshToken string) http.Cookie {
+	return http.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
+		Secure:   true,
+	}
+}
+
+type tokenResponse struct {
 	Token string `json:"token"`
-	User  User   `json:"user"`
 }
 
 func login(store Storage) http.HandlerFunc {
@@ -71,33 +83,72 @@ func login(store Storage) http.HandlerFunc {
 		}
 
 		// Dispatch to user service
-		user, token, err := Login(credentials, store)
+		token, refreshToken, err := Login(credentials, store)
 		if err != nil {
 			responder.CastAndSend(err, w)
 			return
 		}
 
+		// Set http-only cookie refreshToken
+		c := refreshCookie(refreshToken)
+		http.SetCookie(w, &c)
+
 		responder.Res{
 			Message: "logged in",
-			Data: loginResponse{
+			Data: tokenResponse{
 				Token: token,
-				User:  user,
+			},
+		}.Send(w)
+	})
+}
+
+func refresh(store Storage) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("refreshToken")
+		if err != nil {
+			responder.Err{
+				Code: http.StatusUnauthorized,
+				Err:  errors.New("no refreshToken present"),
+			}.Send(w)
+			return
+		}
+
+		token, refreshToken, err := Refresh(cookie.Value, store)
+		if err != nil {
+			responder.CastAndSend(err, w)
+			return
+		}
+
+		// set http-only cookie refreshToken
+		c := refreshCookie(refreshToken)
+		http.SetCookie(w, &c)
+
+		responder.Res{
+			Message: "token refreshed",
+			Data: tokenResponse{
+				Token: token,
 			},
 		}.Send(w)
 	})
 }
 
 // me sends the user making the request
-func me() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, err := GetUser(r)
-		if err != nil {
-			responder.CastAndSend(err, w)
-			return
-		}
+func me(w http.ResponseWriter, r *http.Request) {
+	user, err := GetUser(r)
+	if err != nil {
+		responder.CastAndSend(err, w)
+		return
+	}
 
-		responder.Res{
-			Data: user,
-		}.Send(w)
-	})
+	responder.Res{
+		Data: user,
+	}.Send(w)
+}
+
+func logout(w http.ResponseWriter, r *http.Request) {
+	c := refreshCookie("")
+	http.SetCookie(w, &c)
+	responder.Res{
+		Message: "logged out",
+	}.Send(w)
 }

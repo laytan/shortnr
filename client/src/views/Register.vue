@@ -25,7 +25,7 @@
 
 <script>
 import { ref } from 'vue';
-import { reqP } from '../api';
+import { reqP, endpoints } from '../api';
 import Email from '../components/forms/Email.vue';
 import Password from '../components/forms/Password.vue';
 import LoadingButton from '../components/forms/LoadingButton.vue';
@@ -63,12 +63,12 @@ export default {
       loading.value = true;
 
       // Request signup and handle success and errors setting loading=false at the end
-      reqP('signup', {
+      reqP(endpoints.register, {
         email: email.value,
         password: password.value,
       })
         .then(({ msg }) => { success.value = msg; })
-        .catch(({ msg }) => { error.value = msg; })
+        .catch(({ message }) => { error.value = message; })
         .finally(() => { loading.value = false; });
     };
 

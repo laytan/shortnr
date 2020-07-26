@@ -14,11 +14,11 @@ import (
 )
 
 // Login handles logging in and returning a user token, erros are of type responder.Err
-func Login(credentials Credentials, store Storage) (User, string, error) {
+func Login(credentials Credentials, store Storage) (string, string, error) {
 	// validate credentials
 	validationErr := validator.New().Struct(credentials)
 	if validationErr != nil {
-		return User{}, "", responder.Err{
+		return "", "", responder.Err{
 			Code: http.StatusBadRequest,
 			Err:  errors.New("credentials validation failed"),
 		}
@@ -27,7 +27,7 @@ func Login(credentials Credentials, store Storage) (User, string, error) {
 	// Check if the user exists
 	user, exists := store.GetByEmail(credentials.Email)
 	if !exists {
-		return User{}, "", responder.Err{
+		return "", "", responder.Err{
 			Code: http.StatusUnauthorized,
 			Err:  errors.New("invalid credentials"),
 		}
@@ -35,33 +35,41 @@ func Login(credentials Credentials, store Storage) (User, string, error) {
 
 	// Check the password matches
 	if notMatchErr := bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(credentials.Password)); notMatchErr != nil {
-		return User{}, "", responder.Err{
+		return "", "", responder.Err{
 			Code: http.StatusUnauthorized,
 			Err:  errors.New("invalid credentials"),
 		}
 	}
 
-	token, err := SignUserToken(user)
+	token, refreshToken, err := SignUserToken(user)
 	if err != nil {
-		return User{}, "", err
+		return "", "", err
 	}
 
-	return user, token, nil
+	return token, refreshToken, nil
 }
 
 // SignUserToken creates a jwt token for the given user, errors are of type responder.Err
-func SignUserToken(user User) (string, error) {
+func SignUserToken(user User) (string, string, error) {
 	// Sign JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":        user.ID,
 		"email":     user.Email,
 		"createdAt": user.CreatedAt,
 		"updatedAt": user.UpdatedAt,
+		// Expire in 15 minutes
+		"exp": time.Now().Add(time.Minute * 15).Unix(),
+	})
+
+	// Generate refresh token
+	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  user.ID,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	secret, exists := os.LookupEnv("JWT_SECRET")
 	if !exists {
-		return "", responder.Err{
+		return "", "", responder.Err{
 			Code: http.StatusInternalServerError,
 			Err:  errors.New("JWT_SECRET environment variable not set"),
 		}
@@ -69,13 +77,21 @@ func SignUserToken(user User) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", responder.Err{
+		return "", "", responder.Err{
 			Code: http.StatusInternalServerError,
 			Err:  fmt.Errorf("error signing JWT: %+v", err),
 		}
 	}
 
-	return tokenString, nil
+	refreshString, err := refresh.SignedString([]byte(secret))
+	if err != nil {
+		return "", "", responder.Err{
+			Code: http.StatusInternalServerError,
+			Err:  fmt.Errorf("error signing JWT: %+v", err),
+		}
+	}
+
+	return tokenString, refreshString, nil
 }
 
 // Signup handles signing up a user, errors are of type responder.Err
@@ -117,4 +133,55 @@ func Signup(creds Credentials, store Storage) error {
 		}
 	}
 	return nil
+}
+
+// Refresh generates new tokens based on the given refresh token
+func Refresh(refreshToken string, store Storage) (string, string, error) {
+	if len(refreshToken) < 2 {
+		return "", "", responder.Err{
+			Code: http.StatusBadRequest,
+			Err:  errors.New("no refresh token provided"),
+		}
+	}
+
+	// Parse the token
+	parsedToken, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		secret, exists := os.LookupEnv("JWT_SECRET")
+		if !exists {
+			return nil, responder.Err{
+				Code: http.StatusInternalServerError,
+				Err:  errors.New("no jwt secret set in env"),
+			}
+		}
+
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return "", "", err
+	}
+
+	// Parse claims for user id
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok || !parsedToken.Valid {
+		return "", "", responder.Err{
+			Code: http.StatusUnauthorized,
+			Err:  errors.New("invalid token"),
+		}
+	}
+
+	// check if the user exists and is allowed to login
+	userID := uint(claims["id"].(float64))
+	user, exists := store.Get(userID)
+	if !exists {
+		return "", "", responder.Err{
+			Code: http.StatusUnauthorized,
+			Err:  errors.New("user does not exist anymore"),
+		}
+	}
+
+	return SignUserToken(user)
 }

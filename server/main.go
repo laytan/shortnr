@@ -40,7 +40,14 @@ func main() {
 	link.SetRoutes(linksRouter, linksStore)
 	user.SetRoutes(usersRouter, usersStore)
 
-	handler := cors.Default().Handler(r)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:8081"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "DELETE", "POST"},
+	})
+
+	// Insert the middleware
+	handler := c.Handler(r)
 
 	// Start up server
 	log.Fatal(http.ListenAndServe(":8080", handler))

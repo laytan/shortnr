@@ -213,7 +213,7 @@ func TestMeHandlerReturnsLoggedInUser(t *testing.T) {
 	}
 	store.Users = append(store.Users, user)
 
-	jwtToken, err := SignUserToken(user)
+	jwtToken, _, err := SignUserToken(user)
 	if err != nil {
 		t.Fatal(err)
 	}
