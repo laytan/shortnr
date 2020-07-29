@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Res is an error
+// Res is a valid response
 type Res struct {
 	Code    int
 	Message string
