@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex justify-content-center">
+  <div class="d-flex justify-content-center mt-5">
     <div>
       <h1 class="h2">Log in to your account</h1>
       <p v-if="user.email">Hello {{ user.email }}</p>
@@ -25,12 +25,12 @@
 
 <script>
 import { ref } from 'vue';
-import Password from './forms/Password.vue';
-import Email from './forms/Email.vue';
-import LoadingButton from './forms/LoadingButton.vue';
-import { reqP, endpoints } from '../api';
-import Alert from './Alert.vue';
-import { login, user } from '../auth';
+import Password from '@/components/forms/Password.vue';
+import Email from '@/components/forms/Email.vue';
+import LoadingButton from '@/components/forms/LoadingButton.vue';
+import Alert from '@/components/Alert.vue';
+import { reqP, endpoints } from '@/api';
+import { login, user } from '@/auth';
 
 export default {
   name: 'Login',

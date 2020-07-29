@@ -16,7 +16,7 @@
         <div class="collapse navbar-collapse" id="primaryNav">
           <ul class="navbar-nav ml-auto mb-2 mb-md-0">
             <li class="nav-item" v-if="!isLoggedIn">
-              <router-link class="nav-link" to="/">Log in</router-link>
+              <router-link class="nav-link" to="/login">Log in</router-link>
             </li>
             <li class="nav-item" v-if="!isLoggedIn">
               <router-link class="nav-link" to="/register">Register</router-link>

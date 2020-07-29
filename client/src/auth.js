@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import { reqP, endpoints, req } from './api';
+import { reqP, endpoints, reqG } from './api';
 
 // https://stackoverflow.com/questions/38552003/how-to-decode-jwt-token-in-javascript-without-using-a-library
 const parseJwt = (jwtToken) => {
@@ -17,7 +17,7 @@ const isUserDifferent = (user1, user2) => user1?.id !== user2?.id;
 // try to refresh the token
 export const doRefresh = () => {
   // console.log('refreshing token');
-  reqP(endpoints.refresh, {})
+  reqP(endpoints.refresh)
     .then((res) => { login(res.data.token); })
     .catch(() => { logout(); });
 };
@@ -30,8 +30,8 @@ export const user = ref({});
 export const logout = () => {
   if (token.value?.length) {
     // console.log('removing refresh cookie');
-    req(endpoints.logout, {
-      method: 'delete',
+    reqG(endpoints.logout, {}, {
+      method: 'DELETE',
     });
   }
   // console.log('logging out');
