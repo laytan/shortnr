@@ -202,6 +202,20 @@ func TestSignupPasswordGetsHashed(t *testing.T) {
 	}
 }
 
+func TestJwtMiddlewareRequiresValidToken(t *testing.T) {
+	ts, _ := SetupUserServer()
+	defer ts.Close()
+
+	res, err := http.Get(ts.URL + "/me")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != 401 {
+		t.Fatal("No 401 returned on authorized route without authorization")
+	}
+}
+
 func TestMeHandlerReturnsLoggedInUser(t *testing.T) {
 	ts, store := SetupUserServer()
 	defer ts.Close()
@@ -292,5 +306,120 @@ func TestLoginReturnsToken(t *testing.T) {
 
 	if len(body.Res.Data["token"].(string)) < 2 {
 		t.Fatalf("Expected token string to be longer then 2 characters, got: %q", body.Res.Data["token"])
+	}
+}
+
+func TestLoginSetsRefreshTokenCookie(t *testing.T) {
+	ts, store := SetupUserServer()
+	defer ts.Close()
+
+	// Insert a user to login to
+	hash, hashErr := bcrypt.GenerateFromPassword([]byte("12345678"), 1)
+	if hashErr != nil {
+		t.Fatal(hashErr)
+	}
+	userToLogin := User{ID: 1, Email: "test@test.com", Hash: string(hash)}
+	store.Users = append(store.Users, userToLogin)
+
+	// Perform request
+	url := ts.URL + "/login"
+	res, err := http.Post(url, "application/json", strings.NewReader(`{"email": "test@test.com", "password": "12345678"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cookieHeader := res.Header.Get("Set-Cookie")
+	if len(cookieHeader) < 2 || !strings.Contains(cookieHeader, "refreshToken=") {
+		t.Fatal("refreshToken cookie not present")
+	}
+
+	if !strings.Contains(cookieHeader, "HttpOnly") {
+		t.Fatal("refreshToken is not HTTP only")
+	}
+
+	if !strings.Contains(cookieHeader, "Secure") {
+		t.Fatal("refreshToken cookie is not secure")
+	}
+}
+
+func TestTokenCanBeRefreshed(t *testing.T) {
+	ts, store := SetupUserServer()
+	defer ts.Close()
+
+	// Insert a user to login to
+	hash, hashErr := bcrypt.GenerateFromPassword([]byte("12345678"), 1)
+	if hashErr != nil {
+		t.Fatal(hashErr)
+	}
+	userToLogin := User{ID: 1, Email: "test@test.com", Hash: string(hash)}
+	store.Users = append(store.Users, userToLogin)
+
+	// Perform request
+	url := ts.URL + "/login"
+	res, err := http.Post(url, "application/json", strings.NewReader(`{"email": "test@test.com", "password": "12345678"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cookieHeader := res.Header.Get("Set-Cookie")
+	header := http.Header{}
+	header.Add("Cookie", cookieHeader)
+	request := http.Request{Header: header}
+	refreshCookie, noRefreshCookieErr := request.Cookie("refreshToken")
+	if noRefreshCookieErr != nil {
+		t.Fatal(noRefreshCookieErr)
+	}
+
+	refreshURL := ts.URL + "/refresh"
+	req, reqErr := http.NewRequest("POST", refreshURL, strings.NewReader(""))
+	if reqErr != nil {
+		t.Fatal(reqErr)
+	}
+	req.AddCookie(refreshCookie)
+
+	refreshRes, refreshErr := ts.Client().Do(req)
+	if refreshErr != nil {
+		t.Fatal(refreshErr)
+	}
+
+	var body Response
+
+	decodeErr := json.NewDecoder(refreshRes.Body).Decode(&body)
+	if decodeErr != nil {
+		t.Fatal(decodeErr)
+	}
+
+	if len(body.Res.Data["token"].(string)) < 2 {
+		t.Fatal("No token came back from refresh request")
+	}
+
+	if body.Res.Msg != "token refreshed" {
+		t.Fatal("Token refresh message not as expected")
+	}
+
+	cookies := refreshRes.Header.Get("Set-Cookie")
+	if !strings.Contains(cookies, "refreshToken=") {
+		t.Fatal("Refresh did not re set refreshToken")
+	}
+}
+
+func TestLogoutRemovesRefreshToken(t *testing.T) {
+	ts, _ := SetupUserServer()
+	defer ts.Close()
+
+	// Perform request
+	url := ts.URL + "/logout"
+	req, err := http.NewRequest("DELETE", url, strings.NewReader(""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cookieHeader := res.Header.Get("Set-Cookie")
+	if !strings.Contains(cookieHeader, "refreshToken=;") {
+		t.Fatal("refreshToken not set to empty")
 	}
 }
