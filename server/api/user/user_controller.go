@@ -17,10 +17,10 @@ func SetRoutes(r *mux.Router, store Storage) {
 	userR := r.PathPrefix("").Subrouter()
 	userR.Use(ratelimit.Middleware(ratelimit.AuthorizationRateLimit))
 
-	r.HandleFunc("/signup", signup(store)).Methods(http.MethodPost)
-	r.HandleFunc("/login", login(store)).Methods(http.MethodPost)
-	r.HandleFunc("/refresh", refresh(store)).Methods(http.MethodPost)
-	r.HandleFunc("/logout", logout).Methods(http.MethodDelete)
+	userR.HandleFunc("/signup", signup(store)).Methods(http.MethodPost)
+	userR.HandleFunc("/login", login(store)).Methods(http.MethodPost)
+	userR.HandleFunc("/refresh", refresh(store)).Methods(http.MethodPost)
+	userR.HandleFunc("/logout", logout).Methods(http.MethodDelete)
 
 	authR := userR.PathPrefix("").Subrouter()
 	authR.Use(JwtAuthorization)
