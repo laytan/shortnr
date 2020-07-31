@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +23,7 @@ import (
 func init() {
 	// Load .env
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		fmt.Println("No .env file found, is this production?")
 	}
 }
 
