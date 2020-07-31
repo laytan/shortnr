@@ -31,6 +31,7 @@ import LoadingButton from '@/components/forms/LoadingButton.vue';
 import Alert from '@/components/Alert.vue';
 import { reqP, endpoints } from '@/api';
 import { login, user } from '@/auth';
+import router from '@/router';
 
 export default {
   name: 'Login',
@@ -58,6 +59,7 @@ export default {
       })
         .then((res) => {
           login(res.data.token, res.data.refreshToken);
+          router.push({ name: 'Dashboard', query: { 'from-login': 'true' } });
         })
         .catch(({ message }) => { error.value = message; })
         .finally(() => { loading.value = false; });

@@ -8,6 +8,9 @@ export const endpoints = {
   login: '/api/v1/users/login',
   refresh: '/api/v1/users/refresh',
   logout: '/api/v1/users/logout',
+  links: '/api/v1/links',
+  shorten: '/api/v1/links',
+  link: (id) => `/api/v1/links/${id}`,
 };
 
 const handleRequest = (request) => axios(request)

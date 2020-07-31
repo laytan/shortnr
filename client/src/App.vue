@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="view-nav-container vh-100">
     <nav class="navbar navbar-expand-md navbar-dark bg-secondary">
       <div class="container-fluid">
         <router-link class="navbar-brand text-primary" to="/">Shortnr</router-link>
@@ -22,6 +22,9 @@
               <router-link class="nav-link" to="/register">Register</router-link>
             </li>
             <li class="nav-item" v-if="isLoggedIn">
+              <router-link class="nav-link" to="/dashboard">Dashboard</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn">
               <button
               class="nav-link bg-transparent border-0"
               style="font-weight: 600;"
@@ -33,7 +36,7 @@
         </div>
       </div>
     </nav>
-    <router-view/>
+    <router-view class="view" />
   </div>
 </template>
 
@@ -51,3 +54,14 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.view-nav-container {
+  display: flex;
+  flex-direction: column;
+
+  .view {
+    flex-grow: 1;
+  }
+}
+</style>

@@ -1,6 +1,14 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import { isLoggedIn } from '../auth';
+
+const loggedInToDashboard = (_, __, next) => {
+  if (isLoggedIn.value) {
+    next({ name: 'Dashboard', query: { 'from-login': 'true' } });
+    return;
+  }
+  next();
+};
 
 const routes = [
   {
@@ -9,16 +17,22 @@ const routes = [
     component: Home,
   },
   {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import(/* webpackChunkName: "dashboard" */ '../views/Dashboard.vue'),
+    beforeEnter: (_, __, next) => {
+      if (!isLoggedIn.value) {
+        next({ name: 'Login' });
+        return;
+      }
+      next();
+    },
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import(/* webpackChunkName: "login" */ '../views/Login.vue'),
-    beforeEnter: (_, __, next) => {
-      if (isLoggedIn.value) {
-        next({ name: 'Home' });
-      } else {
-        next();
-      }
-    },
+    beforeEnter: loggedInToDashboard,
   },
   {
     path: '/register',
@@ -27,18 +41,22 @@ const routes = [
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () => import(/* webpackChunkName: "register" */ '../views/Register.vue'),
-    beforeEnter: (_, __, next) => {
-      if (isLoggedIn.value) {
-        next({ name: 'Home' });
-      } else {
-        next();
-      }
-    },
+    beforeEnter: loggedInToDashboard,
+  },
+  {
+    path: '/:id',
+    name: 'Redirect',
+    component: () => import(/* webpackChunkName: "redirect" */ '../views/Redirect.vue'),
+  },
+  {
+    path: '/404',
+    name: 'NotFound',
+    component: () => import(/* webpackChunkName: "not-found" */ '../views/NotFound.vue'),
   },
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
 });
 

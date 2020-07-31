@@ -17,7 +17,7 @@
         <p class="m-0">
           Already have an account?
         </p>
-        <router-link to="/" class="link-secondary">Log in</router-link>
+        <router-link to="/login" class="link-secondary">Log in</router-link>
       </div>
     </div>
   </div>

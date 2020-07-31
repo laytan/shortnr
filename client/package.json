@@ -12,6 +12,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^5.0.0-alpha1",
     "core-js": "^3.6.5",
+    "date-fns": "^2.15.0",
     "vue": "^3.0.0-beta.1",
     "vue-router": "^4.0.0-alpha.6"
   },
@@ -44,7 +45,11 @@
       "parser": "babel-eslint"
     },
     "rules": {
-      "no-use-before-define": "off"
+      "no-use-before-define": "off",
+      "no-console": [
+        "warn",
+        { "allow": ["warn", "error"] }
+      ]
     }
   },
   "browserslist": [
