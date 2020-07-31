@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/laytan/shortnr/db"
 
@@ -41,14 +42,15 @@ func main() {
 	user.SetRoutes(usersRouter, usersStore)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8081"},
+		AllowedOrigins:   []string{os.Getenv("FRONT-END_URL")},
 		AllowCredentials: true,
-		AllowedMethods:   []string{"GET", "DELETE", "POST"},
+		AllowedMethods:   []string{"OPTIONS", "HEAD", "GET", "DELETE", "POST"},
+		AllowedHeaders:   []string{"authorization", "content-type"},
 	})
 
 	// Insert the middleware
 	handler := c.Handler(r)
 
 	// Start up server
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), handler))
 }

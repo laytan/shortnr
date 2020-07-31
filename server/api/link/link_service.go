@@ -3,6 +3,7 @@ package link
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator"
 	"github.com/laytan/shortnr/pkg/responder"
@@ -10,10 +11,10 @@ import (
 )
 
 // Create adds a new shortened link to the store
-func Create(link Link, store Storage) (string, error) {
+func Create(link Link, store Storage) (Link, error) {
 	validationErr := validator.New().Struct(link)
 	if validationErr != nil {
-		return "", responder.Err{
+		return Link{}, responder.Err{
 			Code: http.StatusBadRequest,
 			Err:  errors.New("validation failed"),
 		}
@@ -22,7 +23,10 @@ func Create(link Link, store Storage) (string, error) {
 	// Generate a unique ID
 	id := xid.New().String()
 
+	link.ID = id
+	link.CreatedAt = time.Now().Format(time.RFC3339)
+
 	// Store in our storage
-	store.Set(id, link.URL)
-	return id, nil
+	store.Create(link)
+	return link, nil
 }

@@ -11,6 +11,10 @@ import (
 	"github.com/laytan/shortnr/pkg/responder"
 )
 
+type tokenResponse struct {
+	Token string `json:"token"`
+}
+
 // SetRoutes adds the user related routes to the router
 func SetRoutes(r *mux.Router, store Storage) {
 	// Rate limit to 1 request per 10 seconds
@@ -26,6 +30,17 @@ func SetRoutes(r *mux.Router, store Storage) {
 	authR.Use(JwtAuthorization)
 
 	authR.HandleFunc("/me", me).Methods(http.MethodGet)
+}
+
+// Helper to generate refresh cookie with required settings
+func refreshCookie(refreshToken string) http.Cookie {
+	return http.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
+		Secure:   true,
+	}
 }
 
 func signup(store Storage) http.HandlerFunc {
@@ -52,21 +67,6 @@ func signup(store Storage) http.HandlerFunc {
 			Message: "signed up",
 		}.Send(w)
 	})
-}
-
-// Helper to generate refresh cookie with required settings
-func refreshCookie(refreshToken string) http.Cookie {
-	return http.Cookie{
-		Name:     "refreshToken",
-		Value:    refreshToken,
-		SameSite: http.SameSiteNoneMode,
-		HttpOnly: true,
-		Secure:   true,
-	}
-}
-
-type tokenResponse struct {
-	Token string `json:"token"`
 }
 
 func login(store Storage) http.HandlerFunc {
