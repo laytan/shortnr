@@ -1,3 +1,4 @@
+// +heroku goVersion go1.14.4
 module github.com/laytan/shortnr
 
 go 1.14
