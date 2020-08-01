@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+axios.defaults.withCredentials = true;
+
 const APIURL = process.env.VUE_APP_API_URL;
 
 // keep endpoints in one place so we dont have random strings hardcoded everywhere
