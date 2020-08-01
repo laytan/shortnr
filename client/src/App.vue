@@ -41,12 +41,10 @@
 </template>
 
 <script>
-import { doRefresh, isLoggedIn, logout } from './auth';
+import { isLoggedIn, logout } from './auth';
 
 export default {
   setup() {
-    doRefresh();
-
     return {
       isLoggedIn,
       logout,
