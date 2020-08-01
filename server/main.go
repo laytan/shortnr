@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +23,7 @@ import (
 func init() {
 	// Load .env
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		fmt.Println("No .env, are we in production?")
 	}
 }
 
@@ -42,10 +43,10 @@ func main() {
 	user.SetRoutes(usersRouter, usersStore)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{os.Getenv("FRONT-END_URL")},
+		AllowedOrigins:   []string{os.Getenv("FRONT_END_URL")},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"OPTIONS", "HEAD", "GET", "DELETE", "POST"},
-		AllowedHeaders:   []string{"authorization", "content-type"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 	})
 
 	// Insert the middleware
