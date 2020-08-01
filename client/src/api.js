@@ -27,7 +27,7 @@ const handleRequest = (request) => axios(request)
         return new Promise(
           (resolve, reject) => setTimeout(
             () => handleRequest(request).then(resolve).catch(reject),
-            4000,
+            2000,
           ),
         );
         // Error from server
