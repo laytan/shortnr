@@ -67,7 +67,11 @@ export default {
         email: email.value,
         password: password.value,
       })
-        .then(({ msg }) => { success.value = msg; })
+        .then(({ msg }) => {
+          success.value = msg;
+          email.value = '';
+          password.value = '';
+        })
         .catch(({ message }) => { error.value = message; })
         .finally(() => { loading.value = false; });
     };
