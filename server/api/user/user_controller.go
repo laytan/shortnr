@@ -41,6 +41,7 @@ func refreshCookie(refreshToken string) http.Cookie {
 		Value:    refreshToken,
 		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(config.RefreshTokenDuration),
+		Secure:   true,
 		HttpOnly: true,
 	}
 }
