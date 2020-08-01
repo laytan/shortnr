@@ -13,6 +13,7 @@ import (
 	"github.com/laytan/shortnr/api/link"
 	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/jsonmiddleware"
+	"github.com/laytan/shortnr/pkg/responder"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -32,6 +33,12 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Use(jsonmiddleware.Middleware)
+
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		responder.Res{
+			Message: fmt.Sprintf("Hello, world! You should use our app at: %s", os.Getenv("FRONT_END_URL")),
+		}.Send(w)
+	})
 
 	usersRouter := r.PathPrefix("/api/v1/users").Subrouter()
 	linksRouter := r.PathPrefix("/api/v1/links").Subrouter()
