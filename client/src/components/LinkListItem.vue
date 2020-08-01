@@ -6,7 +6,10 @@
     class="d-flex justify-content-between align-items-start">
       <div class="d-flex flex-column mr-2">
         <span>
-          {{ link.id }}
+          <span
+            class="text-muted"
+            style="font-size: .75rem;">
+            {{ redirectBaseUrl }}/</span>{{ link.id }}
         </span>
         <a :href="link.url" rel="noopener noreferrer" target="_BLANK">
           <span class="text-muted">
@@ -44,7 +47,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { reqD, endpoints } from '@/api';
 import { token } from '@/auth';
@@ -63,9 +66,13 @@ export default {
   setup(props, { emit }) {
     const timeAgo = (iso) => `created ${formatDistanceToNow(parseISO(iso))} ago`;
 
+    const redirectBaseUrl = computed(
+      () => process.env.VUE_APP_REDIRECT_BASE_URL || window.location.host,
+    );
+
     const copied = ref(false);
     const copyLink = () => {
-      navigator.clipboard.writeText(`${window.location.host}/${props.link.id}`)
+      navigator.clipboard.writeText(`${redirectBaseUrl.value}/${props.link.id}`)
         .then(() => { copied.value = true; })
         .catch(console.error);
     };
@@ -93,6 +100,7 @@ export default {
       loading,
       deleteLink,
       deleteError,
+      redirectBaseUrl,
     };
   },
 };
