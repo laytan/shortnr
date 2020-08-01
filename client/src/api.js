@@ -13,6 +13,7 @@ export const endpoints = {
   links: '/api/v1/links',
   shorten: '/api/v1/links',
   link: (id) => `/api/v1/links/${id}`,
+  deleteLink: (id) => `/api/v1/links/${id}`,
 };
 
 const handleRequest = (request) => axios(request)
@@ -53,5 +54,12 @@ export const reqG = (endpoint, body = {}, opts = {}) => handleRequest({
   method: 'GET',
   url: `${APIURL}${endpoint}`,
   params: body,
+  ...opts,
+});
+
+export const reqD = (endpoint, body = {}, opts = {}) => handleRequest({
+  method: 'DELETE',
+  url: `${APIURL}${endpoint}`,
+  data: body,
   ...opts,
 });
