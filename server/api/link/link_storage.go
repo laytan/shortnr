@@ -11,6 +11,7 @@ type Storage interface {
 	GetLinksFromUser(userID uint) []Link
 	Create(link Link)
 	Contains(url string) bool
+	Delete(id string) bool
 }
 
 // type link struct {
@@ -79,6 +80,21 @@ func (d MysqlStorage) Contains(url string) bool {
 	return count > 0
 }
 
+// Delete removes the link with the given id
+func (d MysqlStorage) Delete(id string) bool {
+	res, err := d.Conn.Exec("DELETE FROM links WHERE id = ?", id)
+	if err != nil {
+		return false
+	}
+
+	affected, err := res.RowsAffected()
+	if affected == 0 || err != nil {
+		return false
+	}
+
+	return true
+}
+
 // MemoryStorage stores links in memory
 type MemoryStorage struct {
 	Links []Link
@@ -94,6 +110,7 @@ func (m MemoryStorage) Get(id string) (Link, bool) {
 	return Link{}, false
 }
 
+// GetLinksFromUser gets all the links that the user with the given id has created
 func (m MemoryStorage) GetLinksFromUser(userID uint) []Link {
 	links := make([]Link, 0)
 	for _, link := range m.Links {
@@ -104,7 +121,7 @@ func (m MemoryStorage) GetLinksFromUser(userID uint) []Link {
 	return links
 }
 
-// Set adds the given id to url to the map
+// Create adds the given id to url to the map
 func (m *MemoryStorage) Create(link Link) {
 	m.Links = append(m.Links, link)
 }
@@ -117,4 +134,23 @@ func (m MemoryStorage) Contains(url string) bool {
 		}
 	}
 	return false
+}
+
+// Delete removes the link with the given id
+func (m *MemoryStorage) Delete(id string) bool {
+	// find link index
+	linkIndex := -1
+	for i, v := range m.Links {
+		if v.ID == id {
+			linkIndex = i
+		}
+	}
+	if linkIndex == -1 {
+		return false
+	}
+
+	// Remove index from slice
+	m.Links[linkIndex] = m.Links[len(m.Links)-1]
+	m.Links = m.Links[:len(m.Links)-1]
+	return true
 }

@@ -5,10 +5,12 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/jsonmiddleware"
 )
 
@@ -94,5 +96,61 @@ func TestGet(t *testing.T) {
 
 	if link.URL != "https://www.google.com/" {
 		t.Fatalf("URL returned (%s) is not URL (%s) inserted", link.URL, "https://www.google.com/")
+	}
+}
+
+func TestLinkCanBeDeleted(t *testing.T) {
+	ts, store := setupServer()
+	defer ts.Close()
+
+	store.Create(Link{
+		ID:     "0",
+		UserID: 0,
+	})
+
+	authUser := user.User{
+		ID: 0,
+	}
+
+	token, _, err := user.SignUserToken(authUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest("DELETE", ts.URL+"/0", strings.NewReader(""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	res, err := ts.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("Expected status code: 200, got: %d", res.StatusCode)
+	}
+
+	if _, exists := store.Get("0"); exists {
+		t.Fatal("Link still exists")
+	}
+}
+
+func TestLinkCanOnlyBeDeletedByCreator(t *testing.T) {
+	user := user.User{
+		ID: 0,
+	}
+
+	store := MemoryStorage{[]Link{
+		{
+			ID:     "0",
+			UserID: 1,
+		},
+	}}
+
+	err := Destroy("0", user, &store)
+	if err == nil {
+		t.Fatal("destroy should error")
 	}
 }

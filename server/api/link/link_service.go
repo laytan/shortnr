@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator"
+	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/responder"
 	"github.com/rs/xid"
 )
@@ -29,4 +30,34 @@ func Create(link Link, store Storage) (Link, error) {
 	// Store in our storage
 	store.Create(link)
 	return link, nil
+}
+
+// Destroy removes a link if the requester made it and the link exists
+func Destroy(linkID string, requester user.User, store Storage) error {
+	link, exists := store.Get(linkID)
+	if !exists {
+		return responder.Err{
+			Code: http.StatusNotFound,
+			Err:  errors.New("link does not exist"),
+		}
+	}
+
+	// Check if user is link creator
+	if link.UserID != requester.ID {
+		return responder.Err{
+			Code: http.StatusUnauthorized,
+			Err:  errors.New("this link is not created by you"),
+		}
+	}
+
+	// Delete link
+	deleted := store.Delete(linkID)
+	if !deleted {
+		return responder.Err{
+			Code: http.StatusInternalServerError,
+			Err:  errors.New("link could not be deleted"),
+		}
+	}
+
+	return nil
 }
