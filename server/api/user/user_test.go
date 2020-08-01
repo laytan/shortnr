@@ -336,10 +336,6 @@ func TestLoginSetsRefreshTokenCookie(t *testing.T) {
 	if !strings.Contains(cookieHeader, "HttpOnly") {
 		t.Fatal("refreshToken is not HTTP only")
 	}
-
-	if !strings.Contains(cookieHeader, "Secure") {
-		t.Fatal("refreshToken cookie is not secure")
-	}
 }
 
 func TestTokenCanBeRefreshed(t *testing.T) {
