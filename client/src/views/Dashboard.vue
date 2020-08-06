@@ -9,7 +9,7 @@
           <CreateLink style="max-width: 600px;" @created="onCreatedLink"/>
         </div>
         <div class="col-md-6 pl-md-4">
-          <div class="d-flex align-items-center">
+          <div class="d-flex align-items-center mt-4 mt-md-0">
             <h2>
               Your links
             </h2>
@@ -18,7 +18,11 @@
             </div>
           </div>
           <ul class="list-group">
-            <LinkListItem v-for="link in sortedLinks" :link="link" :key="link.id" />
+            <LinkListItem
+            v-for="link in sortedLinks"
+            :link="link"
+            :key="link.id"
+            @removed="onRemovedLink(link)"/>
           </ul>
         </div>
       </div>
@@ -69,6 +73,10 @@ export default {
       links.value.push(link);
     };
 
+    const onRemovedLink = (removedLink) => {
+      links.value.splice(links.value.indexOf(removedLink), 1);
+    };
+
     // Sort on time FIXME:does not work
     const sortedLinks = computed(
       () => links.value.sort(
@@ -82,6 +90,7 @@ export default {
       onCreatedLink,
       sortedLinks,
       loadingLinks,
+      onRemovedLink,
     };
   },
 };

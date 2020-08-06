@@ -51,7 +51,7 @@ func CastAndSend(e error, w http.ResponseWriter) {
 	if rErr, ok := e.(Err); ok {
 		rErr.Send(w)
 	} else {
-		fmt.Println("error is not a request error")
+		fmt.Printf("error is not a request error %v \n", e)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

@@ -15,12 +15,9 @@ const getCurrentUnixTimestamp = () => Math.round((new Date()).getTime() / 1000);
 const isUserDifferent = (user1, user2) => user1?.id !== user2?.id;
 
 // try to refresh the token
-export const doRefresh = () => {
-  // console.log('refreshing token');
-  reqP(endpoints.refresh)
-    .then((res) => { login(res.data.token); })
-    .catch(() => { logout(); });
-};
+export const doRefresh = () => reqP(endpoints.refresh)
+  .then((res) => { login(res.data.token); })
+  .catch(() => { logout(); });
 
 export const token = ref(null);
 export const user = ref({});

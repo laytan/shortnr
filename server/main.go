@@ -13,6 +13,7 @@ import (
 	"github.com/laytan/shortnr/api/link"
 	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/jsonmiddleware"
+	"github.com/laytan/shortnr/pkg/responder"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -33,6 +34,12 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(jsonmiddleware.Middleware)
 
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		responder.Res{
+			Message: fmt.Sprintf("Hello, world! You should use our app at: %s", os.Getenv("FRONT_END_URL")),
+		}.Send(w)
+	})
+
 	usersRouter := r.PathPrefix("/api/v1/users").Subrouter()
 	linksRouter := r.PathPrefix("/api/v1/links").Subrouter()
 
@@ -43,10 +50,10 @@ func main() {
 	user.SetRoutes(usersRouter, usersStore)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{os.Getenv("FRONT-END_URL")},
+		AllowedOrigins:   []string{os.Getenv("FRONT_END_URL")},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"OPTIONS", "HEAD", "GET", "DELETE", "POST"},
-		AllowedHeaders:   []string{"authorization", "content-type"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 	})
 
 	// Insert the middleware

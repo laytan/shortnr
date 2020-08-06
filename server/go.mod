@@ -15,6 +15,6 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.2.1
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 )

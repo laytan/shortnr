@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/laytan/shortnr/config"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 	"github.com/laytan/shortnr/pkg/responder"
@@ -58,13 +60,13 @@ func SignUserToken(user User) (string, string, error) {
 		"createdAt": user.CreatedAt,
 		"updatedAt": user.UpdatedAt,
 		// Expire in 15 minutes
-		"exp": time.Now().Add(time.Minute * 15).Unix(),
+		"exp": time.Now().Add(config.TokenDuration).Unix(),
 	})
 
 	// Generate refresh token
 	refresh := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"exp": time.Now().Add(config.RefreshTokenDuration).Unix(),
 	})
 
 	secret, exists := os.LookupEnv("JWT_SECRET")
@@ -161,7 +163,10 @@ func Refresh(refreshToken string, store Storage) (string, string, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return "", "", err
+		return "", "", responder.Err{
+			Code: http.StatusUnauthorized,
+			Err:  err,
+		}
 	}
 
 	// Parse claims for user id

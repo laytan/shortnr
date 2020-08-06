@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
-import { isLoggedIn } from '../auth';
+import { isLoggedIn, doRefresh } from '../auth';
 
 const loggedInToDashboard = (_, __, next) => {
   if (isLoggedIn.value) {
@@ -58,6 +58,25 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+// Only try to refresh when we actually left the app
+let hasCheckedThisLoad = false;
+
+// Check login
+router.beforeEach(async (to, __, next) => {
+  if (!hasCheckedThisLoad && !isLoggedIn.value) {
+    hasCheckedThisLoad = true;
+
+    // Homepage does not need to wait for the refresh to finish
+    if (to.name === 'Home') {
+      doRefresh();
+    } else {
+      await doRefresh();
+    }
+  }
+
+  next();
 });
 
 export default router;

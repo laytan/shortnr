@@ -23,6 +23,7 @@ func SetRoutes(r *mux.Router, store Storage) {
 	withAuthR.Use(user.JwtAuthorization)
 	withAuthR.HandleFunc("", create(store)).Methods(http.MethodPost)
 	withAuthR.HandleFunc("", all(store)).Methods(http.MethodGet)
+	withAuthR.HandleFunc("/{id}", destroy(store)).Methods(http.MethodDelete)
 }
 
 func create(store Storage) http.HandlerFunc {
@@ -94,5 +95,30 @@ func all(store Storage) http.HandlerFunc {
 			Data: links,
 		}.Send(w)
 		return
+	}
+}
+
+func destroy(store Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get user
+		user, err := user.GetUser(r)
+		if err != nil {
+			responder.CastAndSend(err, w)
+			return
+		}
+
+		// Get link
+		linkID := mux.Vars(r)["id"]
+
+		// Ofload to service
+		err = Destroy(linkID, user, store)
+		if err != nil {
+			responder.CastAndSend(err, w)
+			return
+		}
+
+		responder.Res{
+			Message: "link deleted",
+		}.Send(w)
 	}
 }

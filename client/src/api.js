@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+axios.defaults.withCredentials = true;
+
 const APIURL = process.env.VUE_APP_API_URL;
 
 // keep endpoints in one place so we dont have random strings hardcoded everywhere
@@ -11,6 +13,7 @@ export const endpoints = {
   links: '/api/v1/links',
   shorten: '/api/v1/links',
   link: (id) => `/api/v1/links/${id}`,
+  deleteLink: (id) => `/api/v1/links/${id}`,
 };
 
 const handleRequest = (request) => axios(request)
@@ -24,7 +27,7 @@ const handleRequest = (request) => axios(request)
         return new Promise(
           (resolve, reject) => setTimeout(
             () => handleRequest(request).then(resolve).catch(reject),
-            4000,
+            2000,
           ),
         );
         // Error from server
@@ -51,5 +54,12 @@ export const reqG = (endpoint, body = {}, opts = {}) => handleRequest({
   method: 'GET',
   url: `${APIURL}${endpoint}`,
   params: body,
+  ...opts,
+});
+
+export const reqD = (endpoint, body = {}, opts = {}) => handleRequest({
+  method: 'DELETE',
+  url: `${APIURL}${endpoint}`,
+  data: body,
   ...opts,
 });

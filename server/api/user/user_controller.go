@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/laytan/shortnr/config"
 	"github.com/laytan/shortnr/pkg/ratelimit"
 	"github.com/laytan/shortnr/pkg/responder"
 )
@@ -38,8 +40,9 @@ func refreshCookie(refreshToken string) http.Cookie {
 		Name:     "refreshToken",
 		Value:    refreshToken,
 		SameSite: http.SameSiteNoneMode,
-		HttpOnly: true,
+		Expires:  time.Now().Add(config.RefreshTokenDuration),
 		Secure:   true,
+		HttpOnly: true,
 	}
 }
 
