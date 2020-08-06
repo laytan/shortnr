@@ -69,7 +69,7 @@ router.beforeEach(async (to, __, next) => {
     hasCheckedThisLoad = true;
 
     // Homepage does not need to wait for the refresh to finish
-    if (to.name === 'Home') {
+    if (to.name === 'Home' || to.name === 'Redirect') {
       doRefresh();
     } else {
       await doRefresh();
