@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/laytan/shortnr/api/click"
 	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/ratelimit"
 
@@ -13,11 +14,11 @@ import (
 )
 
 // SetRoutes adds the routes needed for shortn service
-func SetRoutes(r *mux.Router, store Storage) {
+func SetRoutes(r *mux.Router, store Storage, clickStore click.Storage) {
 	linkR := r.PathPrefix("").Subrouter()
 	linkR.Use(ratelimit.Middleware(ratelimit.GeneralRateLimit))
 
-	linkR.HandleFunc("/{id}", one(store)).Methods(http.MethodGet)
+	linkR.HandleFunc("/{id}", one(store, clickStore)).Methods(http.MethodGet)
 
 	withAuthR := linkR.PathPrefix("").Subrouter()
 	withAuthR.Use(user.JwtAuthorization)
@@ -59,11 +60,21 @@ func create(store Storage) http.HandlerFunc {
 	})
 }
 
-func one(store Storage) http.HandlerFunc {
+func one(store Storage, clickStore click.Storage) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 
 		if link, ok := store.Get(id); ok {
+			// Add click
+			_, err := click.Create(link.ID, clickStore)
+			if err != nil {
+				responder.Err{
+					Code: http.StatusInternalServerError,
+					Err:  err,
+				}.Send(w)
+				return
+			}
+
 			responder.Res{
 				Data: link,
 			}.Send(w)

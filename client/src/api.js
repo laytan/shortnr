@@ -14,6 +14,7 @@ export const endpoints = {
   shorten: '/api/v1/links',
   link: (id) => `/api/v1/links/${id}`,
   deleteLink: (id) => `/api/v1/links/${id}`,
+  clicks: (id) => `/api/v1/clicks/${id}`,
 };
 
 const handleRequest = (request) => axios(request)

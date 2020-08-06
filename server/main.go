@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
+	"github.com/laytan/shortnr/api/click"
 	"github.com/laytan/shortnr/api/link"
 	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/jsonmiddleware"
@@ -42,12 +43,15 @@ func main() {
 
 	usersRouter := r.PathPrefix("/api/v1/users").Subrouter()
 	linksRouter := r.PathPrefix("/api/v1/links").Subrouter()
+	clicksRouter := r.PathPrefix("/api/v1/clicks").Subrouter()
 
 	linksStore := link.MysqlStorage{Conn: db}
 	usersStore := user.MysqlStorage{Conn: db}
+	clicksStore := click.MysqlStorage{Conn: db}
 
-	link.SetRoutes(linksRouter, linksStore)
+	link.SetRoutes(linksRouter, linksStore, clicksStore)
 	user.SetRoutes(usersRouter, usersStore)
+	click.SetRoutes(clicksRouter, clicksStore)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("FRONT_END_URL")},

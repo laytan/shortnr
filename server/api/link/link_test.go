@@ -10,24 +10,26 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/laytan/shortnr/api/click"
 	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/jsonmiddleware"
 )
 
 // Loads .env, sets up memory storage, sets up a server with link handlers
-func setupServer() (*httptest.Server, *MemoryStorage) {
+func setupServer() (*httptest.Server, *MemoryStorage, *click.MemoryStorage) {
 	envErr := godotenv.Load("../../.env")
 	if envErr != nil {
 		panic(envErr)
 	}
 
 	store := MemoryStorage{Links: make([]Link, 0)}
+	clickStore := click.MemoryStorage{Clicks: make([]click.Click, 0)}
 
 	r := mux.NewRouter()
 	r.Use(jsonmiddleware.Middleware)
-	SetRoutes(r, &store)
+	SetRoutes(r, &store, &clickStore)
 
-	return httptest.NewServer(r), &store
+	return httptest.NewServer(r), &store, &clickStore
 }
 
 func decodeBody(body io.ReadCloser) map[string]interface{} {
@@ -71,7 +73,7 @@ func TestCreateInserts(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	ts, store := setupServer()
+	ts, store, _ := setupServer()
 	defer ts.Close()
 
 	store.Links = append(store.Links, Link{
@@ -100,7 +102,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestLinkCanBeDeleted(t *testing.T) {
-	ts, store := setupServer()
+	ts, store, _ := setupServer()
 	defer ts.Close()
 
 	store.Create(Link{
@@ -152,5 +154,29 @@ func TestLinkCanOnlyBeDeletedByCreator(t *testing.T) {
 	err := Destroy("0", user, &store)
 	if err == nil {
 		t.Fatal("destroy should error")
+	}
+}
+
+func TestGetOneCreatesClick(t *testing.T) {
+	ts, store, clickStore := setupServer()
+	defer ts.Close()
+
+	store.Links = append(store.Links, Link{
+		ID:     "0",
+		UserID: 1,
+	})
+
+	res, err := http.Get(ts.URL + "/0")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatal("Not OK status returned")
+	}
+
+	clicks := clickStore.GetAll("0")
+	if len(clicks) != 1 {
+		t.Fatal("Expected 1 click")
 	}
 }

@@ -36,6 +36,7 @@ func (r Err) MarshalJSON() ([]byte, error) {
 
 // Send sends the error over the responsewriter
 func (r Err) Send(w http.ResponseWriter) {
+	fmt.Println(r)
 	w.WriteHeader(r.Code)
 	json, err := json.Marshal(r)
 	if err != nil {

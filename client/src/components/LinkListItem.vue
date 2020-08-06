@@ -1,9 +1,6 @@
 <template>
   <li class="list-group-item">
-    <div
-    data-toggle="collapse"
-    :data-target="`#link-${link.id}-collapse`"
-    class="d-flex justify-content-between align-items-start">
+    <div @click="toggleCollapse" class="d-flex justify-content-between align-items-start">
       <div class="d-flex flex-column mr-2">
         <span>
           <span
@@ -22,7 +19,7 @@
         <Icon icon="caret-down" class="cursor-pointer"/>
       </div>
     </div>
-    <div :id="`link-${link.id}-collapse`" class="collapse mt-2">
+    <div ref="collapseEl" class="collapse mt-2">
       <div class="d-flex align-items-center">
         <button
           v-if="canCopy"
@@ -38,8 +35,11 @@
           }"
           text="remove"
           :loading="loading"/>
-          <span v-if="deleteError" class="text-danger mr-2">
-            {{ deleteError }}
+          <span class="badge rounded-pill bg-primary">
+            Clicks: {{ clicks }}
+          </span>
+          <span v-if="error" class="text-danger mr-2">
+            {{ error }}
           </span>
       </div>
     </div>
@@ -47,9 +47,11 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { reqD, endpoints } from '@/api';
+import { Collapse } from 'bootstrap/dist/js/bootstrap.bundle';
+
+import { reqD, endpoints, reqG } from '@/api';
 import { token } from '@/auth';
 import LoadingButton from '@/components/forms/LoadingButton.vue';
 
@@ -66,41 +68,79 @@ export default {
   setup(props, { emit }) {
     const timeAgo = (iso) => `created ${formatDistanceToNow(parseISO(iso))} ago`;
 
-    const redirectBaseUrl = computed(
-      () => process.env.VUE_APP_REDIRECT_BASE_URL || window.location.host,
-    );
+    const redirectBaseUrl = process.env.VUE_APP_REDIRECT_BASE_URL || window.location.host;
 
+    const error = ref('');
+
+    /** Handle link copying */
     const copied = ref(false);
     const copyLink = () => {
-      navigator.clipboard.writeText(`${redirectBaseUrl.value}/${props.link.id}`)
+      error.value = '';
+      navigator.clipboard.writeText(`${redirectBaseUrl}/${props.link.id}`)
         .then(() => { copied.value = true; })
-        .catch(console.error);
+        .catch((e) => { error.value = e.message; });
     };
 
+    /** Handle link deleting */
     const loading = ref(false);
-    const deleteError = ref('');
     const deleteLink = () => {
       loading.value = true;
-      deleteError.value = '';
+      error.value = '';
       reqD(endpoints.deleteLink(props.link.id), {}, {
         headers: {
           Authorization: `Bearer ${token.value}`,
         },
       })
         .then(() => { emit('removed', props.link); })
-        .catch((e) => { deleteError.value = e.message; })
+        .catch((e) => { error.value = e.message; })
         .finally(() => { loading.value = false; });
+    };
+
+    /** Amount of clicks on the link */
+    const clicks = ref('loading...');
+    const loadClicks = () => {
+      if (clicks.value !== 'loading...') {
+        return;
+      }
+
+      error.value = '';
+      reqG(endpoints.clicks(props.link.id), {}, {
+        headers: {
+          Authorization: `Bearer ${token.value}`,
+        },
+      })
+        .then((res) => { clicks.value = res.data.length; })
+        .catch((e) => { error.value = e.message; });
+    };
+
+    /** Show and hide the collapse */
+    let collapseShown = false;
+    const collapseEl = ref(null);
+    const toggleCollapse = () => {
+      if (collapseShown) {
+        collapseShown = false;
+        new Collapse(collapseEl.value).hide();
+      } else {
+        collapseShown = true;
+        new Collapse(collapseEl.value).show();
+
+        // Trigger loading amount of clicks for link when opening collapse
+        loadClicks();
+      }
     };
 
     return {
       timeAgo,
+      error,
       copyLink,
       canCopy: Boolean(navigator.clipboard),
       copied,
       loading,
       deleteLink,
-      deleteError,
       redirectBaseUrl,
+      toggleCollapse,
+      collapseEl,
+      clicks,
     };
   },
 };

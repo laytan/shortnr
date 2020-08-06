@@ -40,5 +40,6 @@ func (r Res) Send(w http.ResponseWriter) {
 		w.WriteHeader(500)
 		return
 	}
+
 	w.Write(json)
 }
