@@ -25,7 +25,7 @@ import (
 func init() {
 	// Load .env
 	if err := godotenv.Load(); err != nil {
-		fmt.Println("No .env, are we in production?")
+		fmt.Println("No .env file found, is this production?")
 	}
 }
 
