@@ -5,17 +5,17 @@
       <div class="container">
         <h1 class="d-inline-block text-secondary font-weight-bold">Shortnr</h1>
         <p class="lead">
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-          Amet, reiciendis.
-          Vero assumenda sed non ipsum optio voluptatum
-          natus labore sint nostrum tempora enim deleniti aspernatur,
-          odio sequi nulla vitae? Placeat reprehenderit deleniti debitis
-          natus labore eos tenetur earum mollitia, exercitationem repellat,
-          dolores libero quidem.
-          Velit tempore delectus odio.
-          Reiciendis, quidem.
+          Shortnr is a URL shortener and click tracker.
+          It is written in VueJS with the composition API on the front-end and Go on the back-end.
+          Complete with JWT Auth with refresh tokens.
+          Shortnr is also downloadable as a PWA app for super easy access.
+          And it is all FREE!
         </p>
-        <div>
+        <div v-if="isLoggedIn">
+          Hello {{ user.email }},
+          <router-link to="/dashboard" class="link-secondary">go to dashboard</router-link>
+        </div>
+        <div v-else>
           <router-link to="/register" class="btn btn-secondary mr-2">Register for free</router-link>
           <router-link to="/login" class="btn btn-link text-secondary font-weight-bold">
             Log in
@@ -27,8 +27,16 @@
 </template>
 
 <script>
+import { isLoggedIn, user } from '@/auth';
+
 export default {
   name: 'Home',
+  setup() {
+    return {
+      isLoggedIn,
+      user,
+    };
+  },
 };
 </script>
 
