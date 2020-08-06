@@ -37,17 +37,38 @@
       </div>
     </nav>
     <router-view class="view" />
+    <Alert
+      v-if="updateExists"
+      type="secondary"
+      heading="Update available"
+      class="position-fixed w-75 left-0 right-0 bottom-0 mx-auto my-2">
+      <span class="mr-1">
+        There is an update available
+      </span>
+      <a role="button" href="#" @click="refreshApp">
+        Update
+      </a>
+    </Alert>
   </div>
 </template>
 
 <script>
+import useUpdate from '@/composition/update';
+import Alert from '@/components/Alert.vue';
 import { isLoggedIn, logout } from './auth';
 
 export default {
+  components: {
+    Alert,
+  },
   setup() {
+    const { refreshApp, updateExists } = useUpdate();
+
     return {
       isLoggedIn,
       logout,
+      updateExists,
+      refreshApp,
     };
   },
 };

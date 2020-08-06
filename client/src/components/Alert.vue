@@ -3,7 +3,7 @@
     :class="`alert alert-${type}`"
     role="alert">
     <p class="sr-only">{{ type }} alert</p>
-    <h4 v-if="heading.length">heading</h4>
+    <h4 v-if="heading">{{ heading }}</h4>
     <slot></slot>
   </div>
 </template>

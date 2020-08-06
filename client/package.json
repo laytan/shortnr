@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "shortnr",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,12 +13,14 @@
     "bootstrap": "^5.0.0-alpha1",
     "core-js": "^3.6.5",
     "date-fns": "^2.15.0",
+    "register-service-worker": "^1.7.1",
     "vue": "^3.0.0-beta.1",
     "vue-router": "^4.0.0-alpha.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
+    "@vue/cli-plugin-pwa": "^4.4.6",
     "@vue/cli-plugin-router": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
     "@vue/compiler-sfc": "^3.0.0-beta.1",
@@ -70,5 +72,18 @@
       "vue-cli-service lint",
       "git add"
     ]
+  },
+  "vue": {
+    "pwa": {
+      "name": "Shortnr",
+      "themeColor": "#168967",
+      "msTileColor": "#343a40",
+      "manifestOptions": {
+        "start_url": "/dashboard"
+      },
+      "iconPaths": {
+        "msTileImage": "img/icons/mstile-150x150.png"
+      }
+    }
   }
 }
