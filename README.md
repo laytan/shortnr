@@ -4,6 +4,7 @@ Shortnr is a URL shortener and click tracker. It is written in VueJS with the co
 
 ## Links
 
+* [Deployed at https://shortnr.laytanlaats.com](https://shortnr.laytanlaats.com)
 * [Client README (VUEJS v3, Bootstrap v5)](./client/README.md)
 * [Server README (Go, MySQL)](./server/README.md)
 
