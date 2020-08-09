@@ -6,21 +6,22 @@
     <Alert v-if="error.length" type="danger">
       {{ error }}
     </Alert>
-    <label for="url" class="sr-only">Link URL</label>
+    <label for="id" class="sr-only">Custom ID (optional)</label>
+    <input
+    v-model="id"
+    id="id"
+    type="text"
+    placeholder="Custom ID (optional)"
+    class="form-control mb-2"
+    autocomplete="off">
+    <label for="url" class="sr-only">Link URL (required)</label>
     <input
     v-model="url"
     id="url"
     type="url"
-    placeholder="URL"
+    placeholder="URL (required)"
     class="form-control mb-2"
     autocomplete="url">
-    <!-- <label for="custom-id" class="sr-only">Custom ID (Optional)</label>
-    <input
-    placeholder="Custom ID (Optional)"
-    type="text"
-    class="form-control mb-2"
-    autocomplete="off"
-    id="custom-id"> -->
     <LoadingButton text="Create" :loading="loading" />
   </form>
 </template>
@@ -38,18 +39,27 @@ export default {
     Alert,
   },
   setup(props, { emit }) {
+    const id = ref('');
     const url = ref('');
     const loading = ref(false);
     const error = ref('');
     const onSubmit = () => {
       error.value = '';
       if (url.value.length < 1) {
-        error.value = 'Please fill in all fields';
+        error.value = 'please fill in a URL to shorten';
         return;
       }
 
+      const payload = {
+        url: url.value,
+      };
+
+      if (id.value.length > 0) {
+        payload.id = id.value;
+      }
+
       loading.value = true;
-      reqP(endpoints.shorten, { url: url.value }, {
+      reqP(endpoints.shorten, payload, {
         headers: {
           Authorization: `Bearer ${token.value}`,
         },
@@ -64,6 +74,7 @@ export default {
       url,
       loading,
       error,
+      id,
     };
   },
 };
