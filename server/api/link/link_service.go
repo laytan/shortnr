@@ -8,6 +8,7 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/laytan/shortnr/api/user"
 	"github.com/laytan/shortnr/pkg/responder"
+	"github.com/laytan/shortnr/pkg/validation"
 	"github.com/rs/xid"
 )
 
@@ -17,7 +18,7 @@ func Create(link Link, store Storage) (Link, error) {
 	if validationErr != nil {
 		return Link{}, responder.Err{
 			Code: http.StatusBadRequest,
-			Err:  errors.New("validation failed"),
+			Err:  validation.ParseError(validationErr, map[string]string{"URL": "Link"}),
 		}
 	}
 

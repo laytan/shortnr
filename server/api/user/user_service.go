@@ -12,6 +12,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 	"github.com/laytan/shortnr/pkg/responder"
+	"github.com/laytan/shortnr/pkg/validation"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -22,7 +23,7 @@ func Login(credentials Credentials, store Storage) (string, string, error) {
 	if validationErr != nil {
 		return "", "", responder.Err{
 			Code: http.StatusBadRequest,
-			Err:  errors.New("credentials validation failed"),
+			Err:  validation.ParseError(validationErr),
 		}
 	}
 
@@ -103,7 +104,7 @@ func Signup(creds Credentials, store Storage) error {
 	if validationErr != nil {
 		return responder.Err{
 			Code: http.StatusBadRequest,
-			Err:  errors.New("validation failed"),
+			Err:  validation.ParseError(validationErr),
 		}
 	}
 
