@@ -27,6 +27,15 @@ func Create(link Link, store Storage) (Link, error) {
 		// Generate a unique ID
 		id := xid.New().String()
 		link.ID = id
+	} else {
+		// Make sure there is no link with the given id already
+		_, exists := store.Get(link.ID)
+		if exists {
+			return Link{}, responder.Err{
+				Code: http.StatusConflict,
+				Err:  errors.New("Custom ID already in use"),
+			}
+		}
 	}
 
 	link.CreatedAt = time.Now().Format(time.RFC3339)
