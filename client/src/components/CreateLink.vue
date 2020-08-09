@@ -64,7 +64,11 @@ export default {
           Authorization: `Bearer ${token.value}`,
         },
       })
-        .then((res) => { emit('created', res.data); })
+        .then((res) => {
+          emit('created', res.data);
+          url.value = '';
+          id.value = '';
+        })
         .catch((e) => { error.value = e.message; })
         .finally(() => { loading.value = false; });
     };
