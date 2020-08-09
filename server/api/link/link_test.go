@@ -180,3 +180,44 @@ func TestGetOneCreatesClick(t *testing.T) {
 		t.Fatal("Expected 1 click")
 	}
 }
+
+func TestLinkCanBeCreatedWithCustomID(t *testing.T) {
+	store := MemoryStorage{
+		Links: make([]Link, 0),
+	}
+
+	link := Link{
+		ID:     "custom",
+		URL:    "https://www.google.com/",
+		UserID: 1,
+	}
+
+	link, err := Create(link, &store)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if link.ID != "custom" {
+		t.Fatal("Link ID was not our custom ID")
+	}
+}
+
+func TestLinkGetsRandomIDIfNoIDIsGiven(t *testing.T) {
+	store := MemoryStorage{
+		Links: make([]Link, 0),
+	}
+
+	link := Link{
+		URL:    "https://www.google.com/",
+		UserID: 1,
+	}
+
+	link, err := Create(link, &store)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(link.ID) == 0 {
+		t.Fatal("Link ID is not generated")
+	}
+}

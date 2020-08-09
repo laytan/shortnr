@@ -21,10 +21,13 @@ func Create(link Link, store Storage) (Link, error) {
 		}
 	}
 
-	// Generate a unique ID
-	id := xid.New().String()
+	// Generate a unique id if no id is present
+	if len(link.ID) == 0 {
+		// Generate a unique ID
+		id := xid.New().String()
+		link.ID = id
+	}
 
-	link.ID = id
 	link.CreatedAt = time.Now().Format(time.RFC3339)
 
 	// Store in our storage
