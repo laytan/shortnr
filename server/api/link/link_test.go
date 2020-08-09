@@ -221,3 +221,22 @@ func TestLinkGetsRandomIDIfNoIDIsGiven(t *testing.T) {
 		t.Fatal("Link ID is not generated")
 	}
 }
+
+func TestLinksCanNotHaveTheSameID(t *testing.T) {
+	store := MemoryStorage{
+		Links: []Link{
+			{
+				ID:     "custom",
+				UserID: 2,
+			},
+		},
+	}
+
+	_, err := Create(Link{
+		ID:     "custom",
+		UserID: 1,
+	}, &store)
+	if err == nil {
+		t.Fatal("Expected create to error because of conflict")
+	}
+}
