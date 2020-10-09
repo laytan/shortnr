@@ -42,14 +42,22 @@
             {{ error }}
           </span>
       </div>
+      <div ref="chartEl"></div>
     </div>
   </li>
 </template>
 
 <script>
-import { ref } from 'vue';
-import { formatDistanceToNow, parseISO } from 'date-fns';
+import { ref, watch } from 'vue';
+import {
+  formatDistanceToNow,
+  parseISO,
+  isSameDay,
+  format,
+} from 'date-fns';
 import { Collapse } from 'bootstrap/dist/js/bootstrap.bundle';
+import { Chart } from 'frappe-charts/dist/frappe-charts.esm';
+import 'frappe-charts/dist/frappe-charts.min.css';
 
 import { reqD, endpoints, reqG } from '@/api';
 import { token } from '@/auth';
@@ -98,6 +106,7 @@ export default {
 
     /** Amount of clicks on the link */
     const clicks = ref('loading...');
+    const clickElements = ref(null);
     const loadClicks = () => {
       if (clicks.value !== 'loading...') {
         return;
@@ -109,7 +118,7 @@ export default {
           Authorization: `Bearer ${token.value}`,
         },
       })
-        .then((res) => { clicks.value = res.data.length; })
+        .then((res) => { clicks.value = res.data.length; clickElements.value = res.data; })
         .catch((e) => { error.value = e.message; });
     };
 
@@ -129,6 +138,50 @@ export default {
       }
     };
 
+    /** Handle chart logic / displaying */
+    const chartEl = ref(null);
+    watch(clickElements, (value) => {
+      if (value.length === 0) {
+        return;
+      }
+
+      // Change our array with every single click into an array of objects where the same day
+      // clicks count up
+      const clicksPerDay = value.reduce((aggr, curr) => {
+        const date = parseISO(curr.created_at);
+        const added = aggr.some((v, i) => {
+          if (isSameDay(date, v.date)) {
+            // eslint-disable-next-line no-param-reassign
+            aggr[i].clicks += 1;
+            return true;
+          }
+          return false;
+        });
+
+        if (!added) {
+          aggr.push({ date, clicks: 1 });
+        }
+
+        return aggr;
+      }, []);
+
+      // eslint-disable-next-line no-new
+      new Chart(chartEl.value, {
+        title: 'Clicks',
+        data: {
+          labels: clicksPerDay.map((day) => format(day.date, 'd MMM yy')),
+          datasets: [
+            {
+              values: clicksPerDay.map((day) => day.clicks),
+            },
+          ],
+        },
+        type: 'line',
+        height: 250,
+        colors: ['#168967'],
+      });
+    });
+
     return {
       timeAgo,
       error,
@@ -141,6 +194,7 @@ export default {
       toggleCollapse,
       collapseEl,
       clicks,
+      chartEl,
     };
   },
 };
